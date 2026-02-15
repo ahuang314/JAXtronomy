@@ -3,6 +3,7 @@ __all__ = ["MultiDataBase"]
 from functools import partial
 from jax import jit, numpy as jnp
 
+
 class MultiDataBase(object):
     """Base class with definitions that are shared among all variations of modelling
     multiple data sets."""
@@ -41,7 +42,7 @@ class MultiDataBase(object):
         return self._num_response_list
 
     # Point source cache not supported in JAXtronomy
-    #def reset_point_source_cache(self, cache=True):
+    # def reset_point_source_cache(self, cache=True):
     #    """Deletes all the cache in the point source class and saves it from then on.
 
     #    :return:

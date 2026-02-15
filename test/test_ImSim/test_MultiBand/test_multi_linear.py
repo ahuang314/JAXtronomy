@@ -2,6 +2,7 @@ import numpy.testing as npt
 import pytest
 import numpy as np
 import jax
+
 jax.config.update("jax_enable_x64", True)
 
 from jaxtronomy.ImSim.MultiBand.multi_linear import MultiLinear
@@ -114,7 +115,10 @@ class TestImageModel(object):
         data_class.update_data(image_sim)
         kwargs_data["image_data"] = image_sim
 
-        multi_band_list = [[kwargs_data, kwargs_psf, kwargs_numerics], [kwargs_data, kwargs_psf, kwargs_numerics]]
+        multi_band_list = [
+            [kwargs_data, kwargs_psf, kwargs_numerics],
+            [kwargs_data, kwargs_psf, kwargs_numerics],
+        ]
         kwargs_model = {
             "lens_model_list": lens_model_list,
             "source_light_model_list": source_model_list,
@@ -122,10 +126,16 @@ class TestImageModel(object):
             "fixed_magnification_list": [True],
         }
         self.imageModel = MultiLinear(
-            multi_band_list, kwargs_model, likelihood_mask_list=None, compute_bool=[True, False]
+            multi_band_list,
+            kwargs_model,
+            likelihood_mask_list=None,
+            compute_bool=[True, False],
         )
         self.imageModel_ref = MultiLinear_ref(
-            multi_band_list, kwargs_model, likelihood_mask_list=None, compute_bool=[True, False]
+            multi_band_list,
+            kwargs_model,
+            likelihood_mask_list=None,
+            compute_bool=[True, False],
         )
 
     def test_image_linear_solve(self):
@@ -137,12 +147,14 @@ class TestImageModel(object):
             inv_bool=False,
         )
 
-        model_ref, error_map_ref, cov_param_ref, param_ref = self.imageModel_ref.image_linear_solve(
-            self.kwargs_lens,
-            self.kwargs_source,
-            self.kwargs_lens_light,
-            self.kwargs_ps,
-            inv_bool=False,
+        model_ref, error_map_ref, cov_param_ref, param_ref = (
+            self.imageModel_ref.image_linear_solve(
+                self.kwargs_lens,
+                self.kwargs_source,
+                self.kwargs_lens_light,
+                self.kwargs_ps,
+                inv_bool=False,
+            )
         )
         assert len(model) == len(model_ref)
         assert len(error_map) == len(error_map_ref)
@@ -159,18 +171,21 @@ class TestImageModel(object):
             if error_map[i] is None and error_map_ref[i] is None:
                 pass
             else:
-                npt.assert_allclose(error_map[i], error_map_ref[i], atol=1e-7, rtol=1e-7)
+                npt.assert_allclose(
+                    error_map[i], error_map_ref[i], atol=1e-7, rtol=1e-7
+                )
 
             if cov_param[i] is None and cov_param_ref[i] is None:
                 pass
             else:
-                npt.assert_allclose(cov_param[i], cov_param_ref[i], atol=1e-7, rtol=1e-7)
+                npt.assert_allclose(
+                    cov_param[i], cov_param_ref[i], atol=1e-7, rtol=1e-7
+                )
 
             if param[i] is None and param_ref[i] is None:
                 pass
             else:
                 npt.assert_allclose(param[i], param_ref[i], atol=1e-6, rtol=1e-6)
-
 
     def test_likelihood_data_given_model(self):
         logL, param = self.imageModel.likelihood_data_given_model(
