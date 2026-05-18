@@ -104,7 +104,7 @@ class TestLikelihood(object):
             point_source_class,
             extinction_class,
         ) = class_creator.create_class_instances(**kwargs_model)
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -115,7 +115,7 @@ class TestLikelihood(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -166,7 +166,7 @@ class TestLikelihood(object):
         self.param_class = Param(
             self.kwargs_model, linear_solver=False, num_point_source_list=[2], _jax=True
         )
-        self.imageModel = ImageModel(
+        self.image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,

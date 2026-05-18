@@ -81,7 +81,7 @@ class TestSampler(object):
             "supersampling_convolution": False,
             "compute_mode": "regular",
         }
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -90,7 +90,7 @@ class TestSampler(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel, self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light
+            image_model, self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light
         )
 
         data_class.update_data(image_sim)

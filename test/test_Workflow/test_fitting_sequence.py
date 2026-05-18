@@ -100,7 +100,7 @@ class TestFittingSequence(object):
             "compute_mode": "regular",
             # "point_source_supersampling_factor": 1,
         }
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -110,7 +110,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -466,7 +466,7 @@ class TestFittingSequence(object):
             "supersampling_convolution": False,
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_gaussian,
             lens_model_class,
@@ -474,7 +474,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             kwargs_lens,
             kwargs_source,
             point_source_add=False,
@@ -623,7 +623,7 @@ class TestFittingSequence(object):
             "supersampling_convolution": False,
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_gaussian,
             lens_model_class,
@@ -631,7 +631,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             kwargs_lens,
             kwargs_source,
             point_source_add=False,
@@ -1051,7 +1051,7 @@ class TestFittingSequence(object):
             "convolution_type": "fft_static",
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class=lens_model_class,
@@ -1061,7 +1061,7 @@ class TestFittingSequence(object):
         )
 
         # generate image
-        image_model = imageModel.image(
+        image_model = image_model.image(
             kwargs_lens,
             kwargs_source,
             kwargs_lens_light=kwargs_lens_light,
