@@ -170,18 +170,14 @@ class TestNumerics(object):
         )
 
         x, y = numerics_ref.coordinates_evaluate
-        flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
+        flux = self.lightModel.surface_brightness(x, y, kwargs_list=self.kwargs_light)
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(
-            flux, unconvolved=True
-        )
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
     def test_supersampling_pixel_psf(self):
@@ -222,20 +218,14 @@ class TestNumerics(object):
         )
 
         x, y = numerics_ref.coordinates_evaluate
-        flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
+        flux = self.lightModel.surface_brightness(x, y, kwargs_list=self.kwargs_light)
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
 
-        re_size_convolve = numerics.re_size_convolve(
-            flux, unconvolved=True
-        )
-        re_size_convolve_ref = numerics_ref.re_size_convolve(
-            flux, unconvolved=True
-        )
+        re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         # These should actually be equal but there's some floating point precision nonsense happening
         npt.assert_array_almost_equal(
             re_size_convolve, re_size_convolve_ref, decimal=16
@@ -268,9 +258,7 @@ class TestNumerics(object):
         )
 
         x, y = numerics_ref.coordinates_evaluate
-        flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
+        flux = self.lightModel.surface_brightness(x, y, kwargs_list=self.kwargs_light)
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
@@ -285,9 +273,7 @@ class TestNumerics(object):
         )
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(
-            flux, unconvolved=True
-        )
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
     def test_supersampling_gaussian_psf(self):
@@ -315,9 +301,7 @@ class TestNumerics(object):
         )
 
         x, y = numerics_ref.coordinates_evaluate
-        flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
+        flux = self.lightModel.surface_brightness(x, y, kwargs_list=self.kwargs_light)
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
@@ -325,12 +309,8 @@ class TestNumerics(object):
             re_size_convolve, re_size_convolve_ref, decimal=10
         )
 
-        re_size_convolve = numerics.re_size_convolve(
-            flux, unconvolved=True
-        )
-        re_size_convolve_ref = numerics_ref.re_size_convolve(
-            flux, unconvolved=True
-        )
+        re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         # These should actually be equal but there's some floating point precision nonsense happening
         npt.assert_array_almost_equal(
             re_size_convolve, re_size_convolve_ref, decimal=16
@@ -356,9 +336,7 @@ class TestNumerics(object):
         )
 
         x, y = numerics_ref.coordinates_evaluate
-        flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
+        flux = self.lightModel.surface_brightness(x, y, kwargs_list=self.kwargs_light)
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
