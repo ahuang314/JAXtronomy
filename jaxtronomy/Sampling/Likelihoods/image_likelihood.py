@@ -92,7 +92,7 @@ class ImageLikelihood(object):
             linear_prior=self._linear_prior,
             check_positive_flux=self._check_positive_flux,
         )
-        logL = jnp.nan_to_num(logL, nan=-(10**15))
+        logL = jnp.nan_to_num(logL, nan=-1e15)
         return logL, param
 
     @property
