@@ -2,7 +2,7 @@ import pytest
 import numpy as np, numpy.testing as npt
 import lenstronomy.Util.simulation_util as sim_util
 from lenstronomy.ImSim.image_model import ImageModel
-from jaxtronomy.Sampling.likelihood import LikelihoodModule
+from jaxtronomy.Sampling.likelihood import Likelihood
 from lenstronomy.Sampling.parameters import Param
 from lenstronomy.LensModel.lens_model import LensModel
 from lenstronomy.LightModel.light_model import LightModel
@@ -121,13 +121,13 @@ class TestSampler(object):
             "source_position_sigma": 0.001,
         }
         self.param_class = Param(kwargs_model, _jax=True, **kwargs_constraints)
-        self.Likelihood = LikelihoodModule(
+        self.Likelihood = Likelihood(
             kwargs_data_joint=kwargs_data_joint,
             kwargs_model=kwargs_model,
             param_class=self.param_class,
             **kwargs_likelihood
         )
-        self.sampler = Sampler(likelihoodModule=self.Likelihood)
+        self.sampler = Sampler(likelihood_class=self.Likelihood)
 
     def test_pso(self):
         n_particles = 2

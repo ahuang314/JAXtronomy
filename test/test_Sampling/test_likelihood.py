@@ -11,8 +11,8 @@ from lenstronomy.Sampling.parameters import Param
 from lenstronomy.Data.imaging_data import ImageData
 from lenstronomy.Data.psf import PSF
 
-from jaxtronomy.Sampling.likelihood import LikelihoodModule
-from lenstronomy.Sampling.likelihood import LikelihoodModule as LikelihoodModule_ref
+from jaxtronomy.Sampling.likelihood import Likelihood
+from lenstronomy.Sampling.likelihood import Likelihood as Likelihood_ref
 
 from jaxtronomy.LensModel.profile_list_base import (
     _JAXXED_MODELS as JAXXED_DEFLECTOR_PROFILES,
@@ -25,7 +25,7 @@ from jaxtronomy.LightModel.light_model import LightModel
 from jaxtronomy.Sampling.likelihood import ImageLikelihood
 
 
-class TestLikelihoodModule(object):
+class TestLikelihood(object):
     """Test the fitting sequences."""
 
     def setup_method(self):
@@ -175,13 +175,13 @@ class TestLikelihoodModule(object):
             point_source_class,
             kwargs_numerics=kwargs_numerics,
         )
-        self.Likelihood = LikelihoodModule(
+        self.Likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=kwargs_model,
             param_class=self.param_class,
             **kwargs_likelihood,
         )
-        self.Likelihood_ref = LikelihoodModule_ref(
+        self.Likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=kwargs_model,
             param_class=self.param_class,
@@ -194,7 +194,7 @@ class TestLikelihoodModule(object):
     def test_raises(self):
         npt.assert_raises(
             ValueError,
-            LikelihoodModule,
+            Likelihood,
             self.kwargs_data_joint,
             self.kwargs_model,
             self.param_class,
@@ -202,7 +202,7 @@ class TestLikelihoodModule(object):
         )
         npt.assert_raises(
             ValueError,
-            LikelihoodModule,
+            Likelihood,
             self.kwargs_data_joint,
             self.kwargs_model,
             self.param_class,
@@ -210,7 +210,7 @@ class TestLikelihoodModule(object):
         )
         npt.assert_raises(
             ValueError,
-            LikelihoodModule,
+            Likelihood,
             self.kwargs_data_joint,
             self.kwargs_model,
             self.param_class,
@@ -218,7 +218,7 @@ class TestLikelihoodModule(object):
         )
         npt.assert_raises(
             ValueError,
-            LikelihoodModule,
+            Likelihood,
             self.kwargs_data_joint,
             self.kwargs_model,
             self.param_class,
@@ -304,13 +304,13 @@ class TestLikelihoodModule(object):
             kwargs_special=self.kwargs_special,
         )
 
-        Likelihood = LikelihoodModule(
+        Likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=False,
         )
-        Likelihood_ref = LikelihoodModule_ref(
+        Likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
@@ -325,13 +325,13 @@ class TestLikelihoodModule(object):
         assert Likelihood.logL(args) != -1e18
 
         # Test check_bounds = True
-        Likelihood = LikelihoodModule(
+        Likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=True,
         )
-        Likelihood_ref = LikelihoodModule_ref(
+        Likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
@@ -355,14 +355,14 @@ class TestLikelihoodModule(object):
         )
 
         self.kwargs_data_joint["multi_band_list"] = None
-        Likelihood = LikelihoodModule(
+        Likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=True,
             source_position_likelihood=False,
         )
-        Likelihood_ref = LikelihoodModule_ref(
+        Likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,

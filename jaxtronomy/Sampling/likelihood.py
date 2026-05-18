@@ -14,10 +14,10 @@ from lenstronomy.Sampling.Likelihoods.prior_likelihood import PriorLikelihood
 # TODO: Implement other Likelihood classes intro jaxtronomy
 # Currently, only image likelihood is supported.
 
-__all__ = ["LikelihoodModule"]
+__all__ = ["Likelihood"]
 
 
-class LikelihoodModule(object):
+class Likelihood(object):
     """This class contains the routines to run a MCMC process.
 
     the key components are:

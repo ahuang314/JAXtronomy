@@ -127,7 +127,7 @@ class OptaxMinimizer:
         return array_of_init_params
 
     def _loss(self, args_unconstrained):
-        """Since LikelihoodModule.logL uses parameters in the constrained space while
+        """Since Likelihood.logL uses parameters in the constrained space while
         the minimizer uses parameters in the unconstrained space, the args need to be
         converted from unconstrained to constrained before calculating logL. Then the
         negative logL is used as the loss function to be minimized.
