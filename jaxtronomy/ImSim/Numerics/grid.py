@@ -73,6 +73,13 @@ class AdaptiveGrid(Coordinates1D):
         if not hasattr(self, "_x_high_res"):
             self._subpixel_coordinates()
         return self._x_high_res, self._y_high_res
+    
+    @property
+    def supersampling_factor(self):
+        """
+        :return: factor (per axis) of super-sampling relative to a pixel
+        """
+        return self._supersampling_factor
 
     def _subpixel_coordinates(self):
         """
