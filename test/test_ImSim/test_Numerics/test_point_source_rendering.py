@@ -14,11 +14,11 @@ import unittest
 
 class TestPointSourceRendering(object):
     def setup_method(self):
-        Mpix2coord = np.array([[1, 0], [0, 1]])
+        transform_pix2coord = np.array([[1, 0], [0, 1]])
         kwargs_grid = {
             "ra_at_xy_0": 0,
             "dec_at_xy_0": 0,
-            "transform_pix2angle": Mpix2coord,
+            "transform_pix2angle": transform_pix2coord,
             "nx": 10,
             "ny": 10,
         }
@@ -92,11 +92,11 @@ class TestPointSourceRendering(object):
 # Same tests as above but with supersampling = 3
 class TestPointSourceRenderingSuperSampling(TestPointSourceRendering):
     def setup_method(self):
-        Mpix2coord = np.array([[1, 0], [0, 1]])
+        transform_pix2coord = np.array([[1, 0], [0, 1]])
         kwargs_grid = {
             "ra_at_xy_0": 0,
             "dec_at_xy_0": 0,
-            "transform_pix2angle": Mpix2coord,
+            "transform_pix2angle": transform_pix2coord,
             "nx": 10,
             "ny": 10,
         }
@@ -122,11 +122,11 @@ class TestPointSourceRenderingSuperSampling(TestPointSourceRendering):
 
 class TestRaise(unittest.TestCase):
     def test_raise(self):
-        Mpix2coord = np.array([[1, 0], [0, 1]])
+        transform_pix2coord = np.array([[1, 0], [0, 1]])
         kwargs_grid = {
             "ra_at_xy_0": 0,
             "dec_at_xy_0": 0,
-            "transform_pix2angle": Mpix2coord,
+            "transform_pix2angle": transform_pix2coord,
             "nx": 10,
             "ny": 10,
         }

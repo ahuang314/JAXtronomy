@@ -524,7 +524,7 @@ class ImageModel(object):
         """
         mask = self.likelihood_mask
         C_D = self.Data.C_D_model(model)
-        residual = (model - self.Data.data) / jnp.sqrt(C_D + jnp.abs(error_map)) * mask
+        residual = (self.Data.data - model) / jnp.sqrt(C_D + jnp.abs(error_map)) * mask
         return residual
 
     @partial(jit, static_argnums=0)

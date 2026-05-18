@@ -181,18 +181,18 @@ class TestClassCreator(object):
         assert lens_model_class.lens_model_list[0] == "SIS"
 
     def test_create_image_model(self):
-        imageModel = class_creator.create_image_model(
+        image_model = class_creator.create_image_model(
             self.kwargs_data,
             self.kwargs_psf,
             kwargs_numerics={},
             kwargs_model=self.kwargs_model,
         )
-        assert imageModel.LensModel.lens_model_list[0] == "SIS"
+        assert image_model.LensModel.lens_model_list[0] == "SIS"
 
-        imageModel = class_creator.create_image_model(
+        image_model = class_creator.create_image_model(
             self.kwargs_data, self.kwargs_psf, kwargs_numerics={}, kwargs_model={}
         )
-        assert imageModel.LensModel.lens_model_list == []
+        assert image_model.LensModel.lens_model_list == []
 
     def test_create_im_sim(self):
         kwargs_model = {
@@ -242,9 +242,9 @@ class TestClassCreator(object):
             bands_compute=None,
             image_likelihood_mask_list=None,
         )
-        assert multi_band._imageModel_list[0].LensModel.lens_model_list[0] == "SIS"
-        assert multi_band._imageModel_list[0].LensModel.lens_model_list[1] == "SIE"
-        assert len(multi_band._imageModel_list) == 2
+        assert multi_band._image_model_list[0].LensModel.lens_model_list[0] == "SIS"
+        assert multi_band._image_model_list[0].LensModel.lens_model_list[1] == "SIE"
+        assert len(multi_band._image_model_list) == 2
 
 
 class TestRaise(unittest.TestCase):

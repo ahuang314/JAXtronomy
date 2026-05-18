@@ -24,20 +24,20 @@ class TestFittingSequence(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 10  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 10  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         # PSF specification
 
         self.kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**self.kwargs_data)
         kwargs_psf_gaussian = {
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
             "truncation": 3,
         }
         psf_gaussian = PSF(**kwargs_psf_gaussian)
@@ -100,7 +100,7 @@ class TestFittingSequence(object):
             "compute_mode": "regular",
             # "point_source_supersampling_factor": 1,
         }
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -110,7 +110,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -426,19 +426,19 @@ class TestFittingSequence(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 10  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 10  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         # PSF specification
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**kwargs_data)
         kwargs_psf_gaussian = {
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
             "truncation": 3,
         }
         psf_gaussian = PSF(**kwargs_psf_gaussian)
@@ -466,7 +466,7 @@ class TestFittingSequence(object):
             "supersampling_convolution": False,
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_gaussian,
             lens_model_class,
@@ -474,7 +474,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             kwargs_lens,
             kwargs_source,
             point_source_add=False,
@@ -573,20 +573,20 @@ class TestFittingSequence(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 10  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 10  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         # PSF specification
 
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**kwargs_data)
         kwargs_psf_gaussian = {
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
             "truncation": 3,
         }
         psf_gaussian = PSF(**kwargs_psf_gaussian)
@@ -623,7 +623,7 @@ class TestFittingSequence(object):
             "supersampling_convolution": False,
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_gaussian,
             lens_model_class,
@@ -631,7 +631,7 @@ class TestFittingSequence(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             kwargs_lens,
             kwargs_source,
             point_source_add=False,
@@ -970,7 +970,7 @@ class TestFittingSequence(object):
         # data specifics
         background_rms = 0.005  #  background noise per pixel
         exp_time = 100.0  #  exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 60  #  cutout pixel size per axis
+        num_pix = 60  #  cutout pixel size per axis
         pixel_scale = 0.11  #  pixel size in arcsec (area per pixel = pixel_scale**2)
         fwhm = 0.5  # full width at half maximum of PSF
 
@@ -1014,10 +1014,10 @@ class TestFittingSequence(object):
             lens_light_model_list, profile_kwargs_list=[{"n_max": 1}]
         )
         # generate the coordinate grid and image properties (we only read out the relevant lines we need)
-        _, _, ra_at_xy_0, dec_at_xy_0, _, _, Mpix2coord, _ = (
+        _, _, ra_at_xy_0, dec_at_xy_0, _, _, transform_pix2coord, _ = (
             util.make_grid_with_coordtransform(
-                numPix=numPix,
-                deltapix=pixel_scale,
+                num_pix=num_pix,
+                delta_pix=pixel_scale,
                 center_ra=0,
                 center_dec=0,
                 subgrid_res=1,
@@ -1030,9 +1030,9 @@ class TestFittingSequence(object):
             "exposure_time": exp_time,  # exposure time (or a map per pixel)
             "ra_at_xy_0": ra_at_xy_0,  # RA at (0,0) pixel
             "dec_at_xy_0": dec_at_xy_0,  # DEC at (0,0) pixel
-            "transform_pix2angle": Mpix2coord,  # matrix to translate shift in pixel in shift in relative RA/DEC (2x2 matrix). Make sure it's units are arcseconds or the angular un
+            "transform_pix2angle": transform_pix2coord,  # matrix to translate shift in pixel in shift in relative RA/DEC (2x2 matrix). Make sure it's units are arcseconds or the angular un
             "image_data": np.zeros(
-                (numPix, numPix)
+                (num_pix, num_pix)
             ),  # 2d data vector, here initialized with zeros as place holders that get's overwritten once a simulated image with noise is cre
         }
 
@@ -1051,7 +1051,7 @@ class TestFittingSequence(object):
             "convolution_type": "fft_static",
         }
 
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class=lens_model_class,
@@ -1061,7 +1061,7 @@ class TestFittingSequence(object):
         )
 
         # generate image
-        image_model = imageModel.image(
+        image_model = image_model.image(
             kwargs_lens,
             kwargs_source,
             kwargs_lens_light=kwargs_lens_light,
