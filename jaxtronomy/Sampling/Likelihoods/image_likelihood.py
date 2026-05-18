@@ -39,7 +39,7 @@ class ImageLikelihood(object):
         if kwargs_pixelbased is not None:
             raise ValueError("pixelbased solver not supported in jaxtronomy")
 
-        self.imSim = class_creator.create_im_sim(
+        self.im_sim = class_creator.create_im_sim(
             multi_band_list,
             multi_band_type,
             kwargs_model,
@@ -48,7 +48,7 @@ class ImageLikelihood(object):
             kwargs_pixelbased=kwargs_pixelbased,
             linear_solver=linear_solver,
         )
-        self._model_type = self.imSim.type
+        self._model_type = self.im_sim.type
         self._source_marg = source_marg
         self._linear_prior = linear_prior
         self._check_positive_flux = check_positive_flux
@@ -81,7 +81,7 @@ class ImageLikelihood(object):
         :return: log likelihood of the data given the model, linear parameter inversion
             list
         """
-        logL, param = self.imSim.likelihood_data_given_model(
+        logL, param = self.im_sim.likelihood_data_given_model(
             kwargs_lens,
             kwargs_source,
             kwargs_lens_light,
@@ -101,7 +101,7 @@ class ImageLikelihood(object):
 
         :return: number of image data points
         """
-        return self.imSim.num_data_evaluate
+        return self.im_sim.num_data_evaluate
 
     @partial(jit, static_argnums=0)
     def num_param_linear(
@@ -118,7 +118,7 @@ class ImageLikelihood(object):
 
         :return:  number of linear parameters solved for during the image reconstruction process
         """
-        return self.imSim.num_param_linear(
+        return self.im_sim.num_param_linear(
             kwargs_lens, kwargs_source, kwargs_lens_light, kwargs_ps
         )
 
@@ -129,4 +129,4 @@ class ImageLikelihood(object):
     #    :param cache: boolean
     #    :return: None
     #    """
-    #    self.imSim.reset_point_source_cache(cache=cache)
+    #    self.im_sim.reset_point_source_cache(cache=cache)
