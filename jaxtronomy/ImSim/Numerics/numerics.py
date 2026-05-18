@@ -83,7 +83,7 @@ class Numerics(PointSourceRendering):
         transform_pix2angle = pixel_grid.transform_pix2angle
         ra_at_xy_0, dec_at_xy_0 = pixel_grid.radec_at_xy_0
         if supersampled_indexes is None:
-           supersampled_indexes = np.zeros((nx, ny), dtype=bool)
+            supersampled_indexes = np.zeros((nx, ny), dtype=bool)
         if (
             compute_mode == "adaptive"
         ):  # or (compute_mode == 'regular' and supersampling_convolution is False and supersampling_factor > 1):
