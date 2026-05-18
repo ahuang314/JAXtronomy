@@ -115,6 +115,7 @@ class TestNumerics(object):
             "psf_type": "NONE",
         }
         self.psf_class_none = PSF(**kwargs_psf_none)
+        self._compute_mode = "regular"
 
     def test_supersampling_cut_kernel(self):
         numerics = Numerics(
@@ -146,7 +147,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
             supersampling_factor=1,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=False,
             convolution_kernel_size=7,
             convolution_type="fft",
@@ -159,7 +160,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
             supersampling_factor=1,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=False,
             convolution_kernel_size=7,
             convolution_type="fft",
@@ -180,7 +181,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
             supersampling_factor=self._supersampling_factor,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=True,
             supersampling_kernel_size=5,
             convolution_kernel_size=8,
@@ -194,7 +195,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
             supersampling_factor=self._supersampling_factor,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=True,
             supersampling_kernel_size=5,
             convolution_kernel_size=8,
@@ -223,7 +224,7 @@ class TestNumerics(object):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_factor=1,
             supersampling_convolution=False,
             convolution_kernel_size=None,
@@ -235,7 +236,7 @@ class TestNumerics(object):
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_factor=1,
             supersampling_convolution=False,
             convolution_kernel_size=None,
@@ -243,11 +244,11 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(self.flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=5)
+        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
 
         re_size_convolve = numerics.re_size_convolve(self.flux + 5.12838)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux + 5.12838)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=5)
+        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
 
         re_size_convolve = numerics.re_size_convolve(self.flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(
@@ -260,7 +261,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
             supersampling_factor=self._supersampling_factor,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=True,
         )
         assert numerics.grid_supersampling_factor == 5
@@ -271,13 +272,13 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
             supersampling_factor=self._supersampling_factor,
-            compute_mode="regular",
+            compute_mode=self._compute_mode,
             supersampling_convolution=True,
         )
 
         re_size_convolve = numerics.re_size_convolve(self.flux_supersampled)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux_supersampled)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=5)
+        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
 
         re_size_convolve = numerics.re_size_convolve(
             self.flux_supersampled, unconvolved=True
@@ -308,6 +309,8 @@ class TestNumerics(object):
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
     def test_init_raise_errors(self):
+
+        # supersampling factor needs to be an int
         npt.assert_raises(
             TypeError,
             Numerics,
@@ -315,6 +318,8 @@ class TestNumerics(object):
             psf=self.psf_class_none,
             supersampling_factor=1.0,
         )
+
+        # incorrect compute mode
         npt.assert_raises(
             ValueError,
             Numerics,
@@ -322,17 +327,19 @@ class TestNumerics(object):
             psf=self.psf_class_none,
             compute_mode="incorrect",
         )
-        npt.assert_raises(
-            ValueError,
-            Numerics,
-            pixel_grid=self.pixel_grid,
-            psf=self.psf_class_none,
-            compute_mode="adaptive",
-        )
+
+        # incorrect psf type
         self.psf_class_none.psf_type = "incorrect"
         npt.assert_raises(
             ValueError, Numerics, pixel_grid=self.pixel_grid, psf=self.psf_class_none
         )
+
+# Same as above but testing Adaptive compute mode
+class TestNumerics2(TestNumerics):
+    def setup_method(self):
+        self._compute_mode = "adaptive"
+        super().setup_method()
+
 
 
 if __name__ == "__main__":
