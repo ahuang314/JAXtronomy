@@ -9,7 +9,8 @@ from jaxtronomy.ImSim.Numerics.convolution import (
     SubgridKernelConvolution,
     GaussianConvolution,
 )
-from jaxtronomy.ImSim.Numerics.grid import RegularGrid
+from jaxtronomy.ImSim.Numerics.adaptive_numerics import AdaptiveConvolution
+from jaxtronomy.ImSim.Numerics.grid import RegularGrid, AdaptiveGrid
 
 from jaxtronomy.ImSim.Numerics.numerics import Numerics
 from lenstronomy.ImSim.Numerics.numerics import Numerics as Numerics_ref
@@ -58,9 +59,6 @@ class TestNumerics(object):
             left_lower=False,
             inverse=False,
         )
-        self.flux = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
-        )
 
         (
             x,
@@ -77,9 +75,6 @@ class TestNumerics(object):
             subgrid_res=1,
             left_lower=False,
             inverse=False,
-        )
-        self.flux_supersampled = self.lightModel.surface_brightness(
-            x, y, kwargs_list=self.kwargs_light
         )
 
         self.kernel_super = kernel_util.kernel_gaussian(
@@ -122,10 +117,12 @@ class TestNumerics(object):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
+            compute_mode=self._compute_mode,
         )
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
+            compute_mode=self._compute_mode,
         )
         cut_kernel = numerics._supersampling_cut_kernel(
             self.kernel_super, 5, self._supersampling_factor
@@ -154,8 +151,13 @@ class TestNumerics(object):
             convolution_type="fft",
         )
         assert numerics.grid_supersampling_factor == 1
+        if self._compute_mode == "regular":
+            grid_class = RegularGrid
+        elif self._compute_mode == "adaptive":
+            grid_class = AdaptiveGrid
+
         assert isinstance(numerics.convolution_class, PixelKernelConvolution)
-        assert isinstance(numerics.grid_class, RegularGrid)
+        assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
@@ -167,13 +169,18 @@ class TestNumerics(object):
             convolution_type="fft",
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux)
+        x, y = numerics_ref.coordinates_evaluate
+        flux = self.lightModel.surface_brightness(
+            x, y, kwargs_list=self.kwargs_light
+        )
+
+        re_size_convolve = numerics.re_size_convolve(flux)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
 
-        re_size_convolve = numerics.re_size_convolve(self.flux, unconvolved=True)
+        re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(
-            self.flux, unconvolved=True
+            flux, unconvolved=True
         )
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
@@ -189,8 +196,16 @@ class TestNumerics(object):
             convolution_type="fft",
         )
         assert numerics.grid_supersampling_factor == 5
-        assert isinstance(numerics.convolution_class, SubgridKernelConvolution)
-        assert isinstance(numerics.grid_class, RegularGrid)
+
+        if self._compute_mode == "regular":
+            grid_class = RegularGrid
+            conv_class = SubgridKernelConvolution
+        elif self._compute_mode == "adaptive":
+            grid_class = AdaptiveGrid
+            conv_class = AdaptiveConvolution
+
+        assert isinstance(numerics.convolution_class, conv_class)
+        assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
@@ -206,15 +221,20 @@ class TestNumerics(object):
             numerics.coordinates_evaluate, numerics_ref.coordinates_evaluate
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux_supersampled)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux_supersampled)
+        x, y = numerics_ref.coordinates_evaluate
+        flux = self.lightModel.surface_brightness(
+            x, y, kwargs_list=self.kwargs_light
+        )
+
+        re_size_convolve = numerics.re_size_convolve(flux)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
 
         re_size_convolve = numerics.re_size_convolve(
-            self.flux_supersampled, unconvolved=True
+            flux, unconvolved=True
         )
         re_size_convolve_ref = numerics_ref.re_size_convolve(
-            self.flux_supersampled, unconvolved=True
+            flux, unconvolved=True
         )
         # These should actually be equal but there's some floating point precision nonsense happening
         npt.assert_array_almost_equal(
@@ -232,7 +252,11 @@ class TestNumerics(object):
         )
         assert numerics.grid_supersampling_factor == 1
         assert isinstance(numerics.convolution_class, GaussianConvolution)
-        assert isinstance(numerics.grid_class, RegularGrid)
+        if self._compute_mode == "regular":
+            grid_class = RegularGrid
+        elif self._compute_mode == "adaptive":
+            grid_class = AdaptiveGrid
+        assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
@@ -243,21 +267,26 @@ class TestNumerics(object):
             convolution_kernel_size=None,
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux)
+        x, y = numerics_ref.coordinates_evaluate
+        flux = self.lightModel.surface_brightness(
+            x, y, kwargs_list=self.kwargs_light
+        )
+
+        re_size_convolve = numerics.re_size_convolve(flux)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(
             re_size_convolve, re_size_convolve_ref, decimal=10
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux + 5.12838)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux + 5.12838)
+        re_size_convolve = numerics.re_size_convolve(flux + 5.12838)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux + 5.12838)
         npt.assert_array_almost_equal(
             re_size_convolve, re_size_convolve_ref, decimal=10
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux, unconvolved=True)
+        re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(
-            self.flux, unconvolved=True
+            flux, unconvolved=True
         )
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
@@ -271,7 +300,11 @@ class TestNumerics(object):
         )
         assert numerics.grid_supersampling_factor == 5
         assert isinstance(numerics.convolution_class, GaussianConvolution)
-        assert isinstance(numerics.grid_class, RegularGrid)
+        if self._compute_mode == "regular":
+            grid_class = RegularGrid
+        elif self._compute_mode == "adaptive":
+            grid_class = AdaptiveGrid
+        assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
@@ -281,17 +314,22 @@ class TestNumerics(object):
             supersampling_convolution=True,
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux_supersampled)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux_supersampled)
+        x, y = numerics_ref.coordinates_evaluate
+        flux = self.lightModel.surface_brightness(
+            x, y, kwargs_list=self.kwargs_light
+        )
+
+        re_size_convolve = numerics.re_size_convolve(flux)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_almost_equal(
             re_size_convolve, re_size_convolve_ref, decimal=10
         )
 
         re_size_convolve = numerics.re_size_convolve(
-            self.flux_supersampled, unconvolved=True
+            flux, unconvolved=True
         )
         re_size_convolve_ref = numerics_ref.re_size_convolve(
-            self.flux_supersampled, unconvolved=True
+            flux, unconvolved=True
         )
         # These should actually be equal but there's some floating point precision nonsense happening
         npt.assert_array_almost_equal(
@@ -302,17 +340,28 @@ class TestNumerics(object):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_none,
+            compute_mode=self._compute_mode,
         )
         assert numerics.convolution_class is None
-        assert isinstance(numerics.grid_class, RegularGrid)
+        if self._compute_mode == "regular":
+            grid_class = RegularGrid
+        elif self._compute_mode == "adaptive":
+            grid_class = AdaptiveGrid
+        assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_none,
+            compute_mode=self._compute_mode,
         )
 
-        re_size_convolve = numerics.re_size_convolve(self.flux)
-        re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux)
+        x, y = numerics_ref.coordinates_evaluate
+        flux = self.lightModel.surface_brightness(
+            x, y, kwargs_list=self.kwargs_light
+        )
+
+        re_size_convolve = numerics.re_size_convolve(flux)
+        re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
         npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
 
     def test_init_raise_errors(self):
