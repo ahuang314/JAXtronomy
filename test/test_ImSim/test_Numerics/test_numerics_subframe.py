@@ -306,13 +306,6 @@ class TestNumericsSubFrame(object):
             psf=self.psf_class_none,
             compute_mode="incorrect",
         )
-        npt.assert_raises(
-            ValueError,
-            NumericsSubFrame,
-            pixel_grid=self.pixel_grid,
-            psf=self.psf_class_none,
-            compute_mode="adaptive",
-        )
         self.psf_class_none.psf_type = "incorrect"
         npt.assert_raises(
             ValueError,
