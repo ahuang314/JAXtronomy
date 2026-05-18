@@ -244,11 +244,15 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(self.flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
+        npt.assert_array_almost_equal(
+            re_size_convolve, re_size_convolve_ref, decimal=10
+        )
 
         re_size_convolve = numerics.re_size_convolve(self.flux + 5.12838)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux + 5.12838)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
+        npt.assert_array_almost_equal(
+            re_size_convolve, re_size_convolve_ref, decimal=10
+        )
 
         re_size_convolve = numerics.re_size_convolve(self.flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(
@@ -278,7 +282,9 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(self.flux_supersampled)
         re_size_convolve_ref = numerics_ref.re_size_convolve(self.flux_supersampled)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=10)
+        npt.assert_array_almost_equal(
+            re_size_convolve, re_size_convolve_ref, decimal=10
+        )
 
         re_size_convolve = numerics.re_size_convolve(
             self.flux_supersampled, unconvolved=True
@@ -334,12 +340,12 @@ class TestNumerics(object):
             ValueError, Numerics, pixel_grid=self.pixel_grid, psf=self.psf_class_none
         )
 
+
 # Same as above but testing Adaptive compute mode
 class TestNumerics2(TestNumerics):
     def setup_method(self):
         self._compute_mode = "adaptive"
         super().setup_method()
-
 
 
 if __name__ == "__main__":
