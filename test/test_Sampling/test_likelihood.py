@@ -34,8 +34,8 @@ class TestLikelihood(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 50  # cutout pixel size
-        deltaPix = 0.1  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 50  # cutout pixel size
+        delta_pix = 0.1  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         kwargs_model = {
@@ -47,10 +47,10 @@ class TestLikelihood(object):
 
         # PSF specification
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**kwargs_data)
-        kwargs_psf = {"psf_type": "GAUSSIAN", "fwhm": fwhm, "pixel_size": deltaPix}
+        kwargs_psf = {"psf_type": "GAUSSIAN", "fwhm": fwhm, "pixel_size": delta_pix}
         psf_class = PSF(**kwargs_psf)
         print(np.shape(psf_class.kernel_point_source), "test kernel shape -")
         kwargs_spep = {
@@ -189,7 +189,7 @@ class TestLikelihood(object):
         )
         self.kwargs_data = kwargs_data
         self.kwargs_psf = kwargs_psf
-        self.numPix = numPix
+        self.num_pix = num_pix
 
     def test_raises(self):
         npt.assert_raises(

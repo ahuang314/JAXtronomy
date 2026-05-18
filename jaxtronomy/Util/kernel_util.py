@@ -13,15 +13,15 @@ def estimate_amp(data, x_pos, y_pos, psf_kernel):
     :param psf_kernel:
     :return:
     """
-    numPix_x, numPix_y = jnp.shape(data)
+    num_pix_x, num_pix_y = jnp.shape(data)
     x_int = (jnp.round(x_pos - 0.49999)).astype(int)
     y_int = (jnp.round(y_pos - 0.49999)).astype(int)
     # TODO: make amplitude estimate not susceptible to rounding effects on which pixels to chose to estimate the amplitude
     conditions = True
     conditions = jnp.where(x_int <= 2, False, conditions)
-    conditions = jnp.where(x_int >= numPix_x - 2, False, conditions)
+    conditions = jnp.where(x_int >= num_pix_x - 2, False, conditions)
     conditions = jnp.where(y_int <= 2, False, conditions)
-    conditions = jnp.where(y_int >= numPix_y - 2, False, conditions)
+    conditions = jnp.where(y_int >= num_pix_y - 2, False, conditions)
 
     # This is the same as np.sum(data[y_int - 2: y_int + 3, x_int - 2: x_int + 3])
     # But we have to do it this way since numpy slicing doesn't work unless the

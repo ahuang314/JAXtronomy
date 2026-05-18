@@ -29,10 +29,10 @@ class TestImageModel(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 100  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 100  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg, inverse=True
+            num_pix, delta_pix, exp_time, sigma_bkg, inverse=True
         )
         self.data_class = ImageData(**kwargs_data)
         self.data_class_ref = ImageData_ref(**kwargs_data)
@@ -150,7 +150,7 @@ class TestImageModel(object):
         }
 
         # Create likelihood mask
-        likelihood_mask = np.ones((numPix, numPix))
+        likelihood_mask = np.ones((num_pix, num_pix))
         likelihood_mask[50][::2] -= likelihood_mask[50][::2]
         likelihood_mask[25][::3] -= likelihood_mask[25][::3]
         self.likelihood_mask = likelihood_mask

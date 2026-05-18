@@ -42,8 +42,8 @@ class TestNumericsSubFrame(object):
 
         # we define a pixel grid and a higher resolution super sampling factor
         self._supersampling_factor = 5
-        numPix = 60  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 60  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         (
             x,
             y,
@@ -54,8 +54,8 @@ class TestNumericsSubFrame(object):
             Mpix2coord,
             Mcoord2pix,
         ) = util.make_grid_with_coordtransform(
-            numPix=numPix,
-            deltapix=deltaPix,
+            num_pix=num_pix,
+            delta_pix=delta_pix,
             subgrid_res=1,
             left_lower=False,
             inverse=False,
@@ -74,8 +74,8 @@ class TestNumericsSubFrame(object):
             Mpix2coord,
             Mcoord2pix,
         ) = util.make_grid_with_coordtransform(
-            numPix=numPix * self._supersampling_factor,
-            deltapix=deltaPix / self._supersampling_factor,
+            num_pix=num_pix * self._supersampling_factor,
+            delta_pix=delta_pix / self._supersampling_factor,
             subgrid_res=1,
             left_lower=False,
             inverse=False,
@@ -86,13 +86,13 @@ class TestNumericsSubFrame(object):
 
         self.kernel_super = kernel_util.kernel_gaussian(
             num_pix=11 * self._supersampling_factor,
-            delta_pix=deltaPix / self._supersampling_factor,
+            delta_pix=delta_pix / self._supersampling_factor,
             fwhm=0.1,
         )
 
         kwargs_grid = {
-            "nx": numPix,
-            "ny": numPix,
+            "nx": num_pix,
+            "ny": num_pix,
             "transform_pix2angle": Mpix2coord,
             "ra_at_xy_0": ra_at_xy_0,
             "dec_at_xy_0": dec_at_xy_0,
@@ -119,7 +119,7 @@ class TestNumericsSubFrame(object):
         }
         self.psf_class_none = PSF(**kwargs_psf_none)
 
-        self.flux_evaluate_indexes = np.zeros((numPix, numPix), dtype=bool)
+        self.flux_evaluate_indexes = np.zeros((num_pix, num_pix), dtype=bool)
         self.flux_evaluate_indexes[15:45, 15:45] = np.ones((30, 30), dtype=bool)
         self.flux_evaluate_indexes[30, 30] = False
 
