@@ -22,21 +22,21 @@ class TestImageModel(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 100  # cutout pixel size
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 100  # cutout pixel size
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         # PSF specification
 
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**kwargs_data)
         kwargs_psf = {
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
             "truncation": 5,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
         }
         psf_class = PSF(**kwargs_psf)
         # 'EXTERNAL_SHEAR': external shear
@@ -93,7 +93,7 @@ class TestImageModel(object):
             point_source_type_list=["LENSED_POSITION"], fixed_magnification_list=[True]
         )
         kwargs_numerics = {"supersampling_factor": 2, "supersampling_convolution": True}
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -103,7 +103,7 @@ class TestImageModel(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel,
+            image_model,
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -124,13 +124,13 @@ class TestImageModel(object):
             "fixed_magnification_list": [True],
         }
         self.kwargs_model = kwargs_model
-        self.imageModel = MultiLinear(
+        self.image_model = MultiLinear(
             multi_band_list,
             kwargs_model,
             likelihood_mask_list=None,
             compute_bool=[True, False],
         )
-        self.imageModel_ref = MultiLinear_ref(
+        self.image_model_ref = MultiLinear_ref(
             multi_band_list,
             kwargs_model,
             likelihood_mask_list=None,
@@ -146,23 +146,23 @@ class TestImageModel(object):
             likelihood_mask_list=None,
             compute_bool=[True, False, False],
         )
-        assert self.imageModel.num_bands == self.imageModel_ref.num_bands
+        assert self.image_model.num_bands == self.image_model_ref.num_bands
         assert (
-            self.imageModel.num_response_list == self.imageModel_ref.num_response_list
+            self.image_model.num_response_list == self.image_model_ref.num_response_list
         )
         assert (
-            self.imageModel.num_data_evaluate == self.imageModel_ref.num_data_evaluate
+            self.image_model.num_data_evaluate == self.image_model_ref.num_data_evaluate
         )
-        num_param_linear = self.imageModel.num_param_linear(
+        num_param_linear = self.image_model.num_param_linear(
             self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light, self.kwargs_ps
         )
-        num_param_linear_ref = self.imageModel_ref.num_param_linear(
+        num_param_linear_ref = self.image_model_ref.num_param_linear(
             self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light, self.kwargs_ps
         )
         assert num_param_linear == num_param_linear_ref
 
     def test_image_linear_solve(self):
-        model, error_map, cov_param, param = self.imageModel.image_linear_solve(
+        model, error_map, cov_param, param = self.image_model.image_linear_solve(
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -171,7 +171,7 @@ class TestImageModel(object):
         )
 
         model_ref, error_map_ref, cov_param_ref, param_ref = (
-            self.imageModel_ref.image_linear_solve(
+            self.image_model_ref.image_linear_solve(
                 self.kwargs_lens,
                 self.kwargs_source,
                 self.kwargs_lens_light,
@@ -210,20 +210,20 @@ class TestImageModel(object):
             else:
                 npt.assert_allclose(param[i], param_ref[i], atol=1e-6, rtol=1e-6)
 
-        residuals = self.imageModel.reduced_residuals(model, error_map)
-        residuals_ref = self.imageModel_ref.reduced_residuals(model_ref, error_map_ref)
+        residuals = self.image_model.reduced_residuals(model, error_map)
+        residuals_ref = self.image_model_ref.reduced_residuals(model_ref, error_map_ref)
         assert len(residuals) == len(residuals_ref)
         for i in range(len(residuals)):
             npt.assert_allclose(residuals[i], residuals_ref[i], atol=1e-5, rtol=1e-5)
 
-        residuals = self.imageModel.reduced_residuals(model, None)
-        residuals_ref = self.imageModel_ref.reduced_residuals(model_ref, None)
+        residuals = self.image_model.reduced_residuals(model, None)
+        residuals_ref = self.image_model_ref.reduced_residuals(model_ref, None)
         assert len(residuals) == len(residuals_ref)
         for i in range(len(residuals)):
             npt.assert_allclose(residuals[i], residuals_ref[i], atol=1e-5, rtol=1e-5)
 
     def test_likelihood_data_given_model(self):
-        logL, param = self.imageModel.likelihood_data_given_model(
+        logL, param = self.image_model.likelihood_data_given_model(
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -231,7 +231,7 @@ class TestImageModel(object):
             source_marg=False,
         )
 
-        logL_ref, param_ref = self.imageModel_ref.likelihood_data_given_model(
+        logL_ref, param_ref = self.image_model_ref.likelihood_data_given_model(
             self.kwargs_lens,
             self.kwargs_source,
             self.kwargs_lens_light,
@@ -248,11 +248,11 @@ class TestImageModel(object):
                 npt.assert_allclose(param[i], param_ref[i], atol=1e-6, rtol=1e-6)
 
     def test_update_linear_kwargs(self):
-        num_param_linear = self.imageModel.num_param_linear(
+        num_param_linear = self.image_model.num_param_linear(
             self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light, self.kwargs_ps
         )
         param = np.ones(int(num_param_linear)) * 10
-        kwargs = self.imageModel.update_linear_kwargs(
+        kwargs = self.image_model.update_linear_kwargs(
             [param * 2, param],
             0,
             self.kwargs_lens,
@@ -260,7 +260,7 @@ class TestImageModel(object):
             self.kwargs_lens_light,
             self.kwargs_ps,
         )
-        kwargs_ref = self.imageModel_ref.update_linear_kwargs(
+        kwargs_ref = self.image_model_ref.update_linear_kwargs(
             [param * 2, param],
             0,
             self.kwargs_lens,

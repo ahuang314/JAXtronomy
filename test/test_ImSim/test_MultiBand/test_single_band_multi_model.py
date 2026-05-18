@@ -23,27 +23,27 @@ class TestSingleBandMultiModel(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        self.numPix = numPix = 100  # cutout pixel size
-        self.numPix2 = numPix2 = 120
-        deltaPix = 0.05  # pixel size in arcsec (area per pixel = deltaPix**2)
+        self.num_pix = num_pix = 100  # cutout pixel size
+        self.num_pix2 = num_pix2 = 120
+        delta_pix = 0.05  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg, inverse=True
+            num_pix, delta_pix, exp_time, sigma_bkg, inverse=True
         )
-        kwargs_data["image_data"] = np.ones((numPix, numPix)) * 30.5
+        kwargs_data["image_data"] = np.ones((num_pix, num_pix)) * 30.5
 
         kwargs_data2 = sim_util.data_configure_simple(
-            numPix2, deltaPix, exp_time + 30, sigma_bkg + 0.01, inverse=True
+            num_pix2, delta_pix, exp_time + 30, sigma_bkg + 0.01, inverse=True
         )
-        kwargs_data2["image_data"] = np.ones((numPix2, numPix2)) * 50.1
+        kwargs_data2["image_data"] = np.ones((num_pix2, num_pix2)) * 50.1
 
         # Create likelihood masks
-        likelihood_mask = np.ones((numPix, numPix))
+        likelihood_mask = np.ones((num_pix, num_pix))
         likelihood_mask[50][::2] -= likelihood_mask[50][::2]
         likelihood_mask[25][::3] -= likelihood_mask[25][::3]
 
-        likelihood_mask2 = np.ones((numPix2, numPix2))
+        likelihood_mask2 = np.ones((num_pix2, num_pix2))
         likelihood_mask2[60][::2] -= likelihood_mask2[60][::2]
         likelihood_mask2[30][::3] -= likelihood_mask2[30][::3]
         likelihood_mask_list = [likelihood_mask, likelihood_mask2]
@@ -52,7 +52,7 @@ class TestSingleBandMultiModel(object):
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
             "truncation": 5,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
         }
         kernel = np.zeros((17, 17))
         kernel[5:-5, 5:-5] = 1
@@ -228,7 +228,7 @@ class TestSingleBandMultiModel(object):
             kwargs_special=self.kwargs_special,
         )
         npt.assert_allclose(image0, image0_ref, atol=1e-10, rtol=1e-10)
-        assert image0.shape == (self.numPix, self.numPix)
+        assert image0.shape == (self.num_pix, self.num_pix)
 
         image1 = self.singleband1.image(
             kwargs_lens=self.kwargs_lens,
@@ -245,7 +245,7 @@ class TestSingleBandMultiModel(object):
             kwargs_special=self.kwargs_special,
         )
         npt.assert_allclose(image1, image1_ref, atol=1e-10, rtol=1e-10)
-        assert image1.shape == (self.numPix2, self.numPix2)
+        assert image1.shape == (self.num_pix2, self.num_pix2)
 
         # Use kwargs_lens2 and make sure we get a different result
         image1 = self.singleband1.image(

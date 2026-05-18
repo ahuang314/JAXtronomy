@@ -2,7 +2,7 @@ import pytest
 import numpy as np, numpy.testing as npt
 import lenstronomy.Util.simulation_util as sim_util
 from lenstronomy.ImSim.image_model import ImageModel
-from jaxtronomy.Sampling.likelihood import LikelihoodModule
+from jaxtronomy.Sampling.likelihood import Likelihood
 from lenstronomy.Sampling.parameters import Param
 from lenstronomy.LensModel.lens_model import LensModel
 from lenstronomy.LightModel.light_model import LightModel
@@ -18,20 +18,20 @@ class TestSampler(object):
         # data specifics
         sigma_bkg = 0.05  # background noise per pixel
         exp_time = 100  # exposure time (arbitrary units, flux per pixel is in units #photons/exp_time unit)
-        numPix = 10  # cutout pixel size
-        deltaPix = 0.1  # pixel size in arcsec (area per pixel = deltaPix**2)
+        num_pix = 10  # cutout pixel size
+        delta_pix = 0.1  # pixel size in arcsec (area per pixel = delta_pix**2)
         fwhm = 0.5  # full width half max of PSF
 
         # PSF specification
 
         kwargs_data = sim_util.data_configure_simple(
-            numPix, deltaPix, exp_time, sigma_bkg
+            num_pix, delta_pix, exp_time, sigma_bkg
         )
         data_class = ImageData(**kwargs_data)
         kwargs_psf_gaussian = {
             "psf_type": "GAUSSIAN",
             "fwhm": fwhm,
-            "pixel_size": deltaPix,
+            "pixel_size": delta_pix,
         }
         psf = PSF(**kwargs_psf_gaussian)
         kwargs_psf = {
@@ -81,7 +81,7 @@ class TestSampler(object):
             "supersampling_convolution": False,
             "compute_mode": "regular",
         }
-        imageModel = ImageModel(
+        image_model = ImageModel(
             data_class,
             psf_class,
             lens_model_class,
@@ -90,7 +90,7 @@ class TestSampler(object):
             kwargs_numerics=kwargs_numerics,
         )
         image_sim = sim_util.simulate_simple(
-            imageModel, self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light
+            image_model, self.kwargs_lens, self.kwargs_source, self.kwargs_lens_light
         )
 
         data_class.update_data(image_sim)
@@ -121,13 +121,13 @@ class TestSampler(object):
             "source_position_sigma": 0.001,
         }
         self.param_class = Param(kwargs_model, _jax=True, **kwargs_constraints)
-        self.Likelihood = LikelihoodModule(
+        self.Likelihood = Likelihood(
             kwargs_data_joint=kwargs_data_joint,
             kwargs_model=kwargs_model,
             param_class=self.param_class,
             **kwargs_likelihood
         )
-        self.sampler = Sampler(likelihoodModule=self.Likelihood)
+        self.sampler = Sampler(likelihood_class=self.Likelihood)
 
     def test_pso(self):
         n_particles = 2

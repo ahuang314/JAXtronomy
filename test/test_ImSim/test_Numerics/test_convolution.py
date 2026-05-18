@@ -21,7 +21,7 @@ class TestPixelKernelConvolution(object):
     def setup_method(self):
         lightModel = LightModel(light_model_list=["GAUSSIAN"])
         self.delta_pix = 1.2345
-        x, y = util.make_grid(10, deltapix=self.delta_pix)
+        x, y = util.make_grid(10, delta_pix=self.delta_pix)
         kwargs = [{"amp": 26.102394, "sigma": 1.3452384, "center_x": 0, "center_y": 0}]
         flux = lightModel.surface_brightness(x, y, kwargs)
         self.model = util.array2image(flux)
@@ -131,10 +131,10 @@ class TestSubgridKernelConvolution(object):
         self.supersampling_factor = 3
         lightModel = LightModel(light_model_list=["GAUSSIAN"])
         self.delta_pix = 1.6534
-        x, y = util.make_grid(30, deltapix=self.delta_pix)
+        x, y = util.make_grid(30, delta_pix=self.delta_pix)
         x_sub, y_sub = util.make_grid(
             30 * self.supersampling_factor,
-            deltapix=self.delta_pix / self.supersampling_factor,
+            delta_pix=self.delta_pix / self.supersampling_factor,
         )
         kwargs = [{"amp": 31.235, "sigma": 2, "center_x": 0, "center_y": 0}]
         flux = lightModel.surface_brightness(x, y, kwargs)
@@ -142,14 +142,14 @@ class TestSubgridKernelConvolution(object):
         flux_sub = lightModel.surface_brightness(x_sub, y_sub, kwargs)
         self.model_sub = util.array2image(flux_sub)
 
-        x, y = util.make_grid(5, deltapix=self.delta_pix)
+        x, y = util.make_grid(5, delta_pix=self.delta_pix)
         kwargs_kernel = [{"amp": 21, "sigma": 1, "center_x": 0, "center_y": 0}]
         kernel = lightModel.surface_brightness(x, y, kwargs_kernel)
         self.kernel = util.array2image(kernel) / np.sum(kernel)
 
         x_sub, y_sub = util.make_grid(
             5 * self.supersampling_factor,
-            deltapix=self.delta_pix / self.supersampling_factor,
+            delta_pix=self.delta_pix / self.supersampling_factor,
         )
         kernel_sub = lightModel.surface_brightness(x_sub, y_sub, kwargs_kernel)
         self.kernel_sub = util.array2image(kernel_sub) / np.sum(kernel_sub)
@@ -240,10 +240,10 @@ class TestGaussianConvolution(object):
         self.supersampling_factor = 3
         lightModel = LightModel(light_model_list=["GAUSSIAN"])
         self.delta_pix = 0.04
-        x, y = util.make_grid(30, deltapix=self.delta_pix)
+        x, y = util.make_grid(30, delta_pix=self.delta_pix)
         x_sub, y_sub = util.make_grid(
             30 * self.supersampling_factor,
-            deltapix=self.delta_pix / self.supersampling_factor,
+            delta_pix=self.delta_pix / self.supersampling_factor,
         )
         kwargs = [
             {"amp": 31.345982834, "sigma": 2.123784, "center_x": 0, "center_y": 0}

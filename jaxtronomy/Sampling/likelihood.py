@@ -14,17 +14,17 @@ from lenstronomy.Sampling.Likelihoods.prior_likelihood import PriorLikelihood
 # TODO: Implement other Likelihood classes intro jaxtronomy
 # Currently, only image likelihood is supported.
 
-__all__ = ["LikelihoodModule"]
+__all__ = ["Likelihood"]
 
 
-class LikelihoodModule(object):
+class Likelihood(object):
     """This class contains the routines to run a MCMC process.
 
     the key components are:
-    - imSim_class: an instance of a class that simulates one (or more) images and returns the likelihood, such as
+    - im_sim_class: an instance of a class that simulates one (or more) images and returns the likelihood, such as
     ImageModel(), Multiband(), MultiExposure()
     - param_class: instance of a Param() class that can cast the sorted list of parameters that are sampled into the
-    conventions of the imSim_class
+    conventions of the ImSim class
 
     Additional arguments are supported for adding a time-delay likelihood etc (see __init__ definition)
     """
@@ -82,7 +82,7 @@ class LikelihoodModule(object):
         """Initializing class.
 
         :param param_class: instance of a Param() class that can cast the sorted list of
-            parameters that are sampled into the conventions of the imSim_class
+            parameters that are sampled into the conventions of the ImSim class
         :param image_likelihood: bool, option to compute the imaging likelihood
         :param source_position_likelihood: bool, if True, ray-traces image positions
             back to source plane and evaluates relative errors in respect ot the

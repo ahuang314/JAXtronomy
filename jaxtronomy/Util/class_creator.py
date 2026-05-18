@@ -339,7 +339,7 @@ def create_image_model(
         point_source_class,
         extinction_class,
     ) = create_class_instances(**kwargs_model)
-    imageModel = ImageModel(
+    image_model = ImageModel(
         data_class,
         psf_class,
         lens_model_class,
@@ -350,7 +350,7 @@ def create_image_model(
         kwargs_numerics,
         likelihood_mask=image_likelihood_mask,
     )
-    return imageModel
+    return image_model
 
 
 @export

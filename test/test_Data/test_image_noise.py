@@ -8,21 +8,21 @@ from jaxtronomy.Data.image_noise import ImageNoise as ImageNoise
 
 class Test_ImageNoise_noisemap(object):
     def setup_method(self):
-        self.numPix = 10
+        self.num_pix = 10
         kwargs_data = {
-            "image_data": np.ones((self.numPix, self.numPix)),
-            "noise_map": 1.1 * np.ones((self.numPix, self.numPix)),
+            "image_data": np.ones((self.num_pix, self.num_pix)),
+            "noise_map": 1.1 * np.ones((self.num_pix, self.num_pix)),
         }
         self.Noise = ImageNoise(**kwargs_data)
         self.Noise_ref = ImageNoise_ref(**kwargs_data)
 
     def test_C_D_model(self):
-        model = np.tile(np.linspace(-1, 1, self.numPix), (self.numPix, 1))
+        model = np.tile(np.linspace(-1, 1, self.num_pix), (self.num_pix, 1))
         c_d = self.Noise.C_D_model(model)
         c_d_ref = self.Noise_ref.C_D_model(model)
         npt.assert_array_almost_equal(c_d, c_d_ref, decimal=6)
 
-        model = np.tile(np.linspace(-0.3, 1.3, self.numPix), (self.numPix, 1))
+        model = np.tile(np.linspace(-0.3, 1.3, self.num_pix), (self.num_pix, 1))
         c_d = self.Noise.C_D_model(model)
         c_d_ref = self.Noise_ref.C_D_model(model)
         npt.assert_array_almost_equal(c_d, c_d_ref, decimal=6)
@@ -31,19 +31,19 @@ class Test_ImageNoise_noisemap(object):
 class Test_ImageNoise_without_noisemap(object):
 
     def setup_method(self):
-        self.numPix = 10
+        self.num_pix = 10
         kwargs_data = {
-            "image_data": np.ones((self.numPix, self.numPix)),
-            "exposure_time": 2 * np.ones((self.numPix, self.numPix)),
+            "image_data": np.ones((self.num_pix, self.num_pix)),
+            "exposure_time": 2 * np.ones((self.num_pix, self.num_pix)),
             "background_rms": 1.103,
         }
         self.Noise = ImageNoise(**kwargs_data)
         self.Noise_ref = ImageNoise_ref(**kwargs_data)
 
     def test_init(self):
-        image_data = np.ones((self.numPix, self.numPix))
-        exposure_time = 2 * np.ones((self.numPix, self.numPix))
-        noise_map = 2 * np.ones((self.numPix, self.numPix))
+        image_data = np.ones((self.num_pix, self.num_pix))
+        exposure_time = 2 * np.ones((self.num_pix, self.num_pix))
+        noise_map = 2 * np.ones((self.num_pix, self.num_pix))
         background_rms = 1.103
         npt.assert_raises(ValueError, ImageNoise, image_data=image_data)
         npt.assert_raises(
@@ -67,12 +67,12 @@ class Test_ImageNoise_without_noisemap(object):
         )
 
     def test_C_D_model(self):
-        model = np.tile(np.linspace(-1, 1, self.numPix), (self.numPix, 1))
+        model = np.tile(np.linspace(-1, 1, self.num_pix), (self.num_pix, 1))
         c_d = self.Noise.C_D_model(model)
         c_d_ref = self.Noise_ref.C_D_model(model)
         npt.assert_array_almost_equal(c_d, c_d_ref, decimal=6)
 
-        model = np.tile(np.linspace(-0.3, 1.3, self.numPix), (self.numPix, 1))
+        model = np.tile(np.linspace(-0.3, 1.3, self.num_pix), (self.num_pix, 1))
         c_d = self.Noise.C_D_model(model)
         c_d_ref = self.Noise_ref.C_D_model(model)
         npt.assert_array_almost_equal(c_d, c_d_ref, decimal=6)

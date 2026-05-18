@@ -264,8 +264,8 @@ class GaussianConvolution(object):
             raise ValueError("psf kernel size must be 3 or greater")
 
         gaussian = Gaussian()
-        # Since sigma is in units of pixels, deltapix is trivially 1 in units of pixels
-        x, y = util.make_grid(numPix=num_pix, deltapix=1)
+        # Since sigma is in units of pixels, delta_pix is trivially 1 in units of pixels
+        x, y = util.make_grid(num_pix=num_pix, delta_pix=1)
         kernel = gaussian.function(x, y, amp=1, sigma=self._sigma_scaled)
         kernel = util.array2image(kernel)
         return kernel / jnp.sum(kernel)

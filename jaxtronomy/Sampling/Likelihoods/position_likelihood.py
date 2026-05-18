@@ -217,7 +217,7 @@ class PositionLikelihood(object):
             ), jnp.array(kwargs_special["delta_y_image"], dtype=float)
             dist = (delta_x**2 + delta_y**2) / sigma**2 / 2
             logL = -jnp.sum(dist)
-            logL = jnp.nan_to_num(logL, nan=-(10**15))
+            logL = jnp.nan_to_num(logL, nan=-1e15)
             return logL
         else:
             return 0
@@ -425,7 +425,7 @@ def _compute_penalty(
     Sigma_inv = jnp.array([[d, -b], [-c, a]])
     penalty = jnp.where(
         det == 0,
-        10**15,
+        1e15,
         delta.T.dot(Sigma_inv.dot(delta)) / (2 * det),
     )
     if hard_bound_rms is not None:
@@ -434,5 +434,5 @@ def _compute_penalty(
             True,
             False,
         )
-        penalty = jnp.where(bound_hit, penalty + 10**3, penalty)
+        penalty = jnp.where(bound_hit, penalty + 1e3, penalty)
     return penalty

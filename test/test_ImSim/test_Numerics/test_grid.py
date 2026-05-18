@@ -10,8 +10,8 @@ import pytest
 
 class TestRegularGrid_Supersample4(object):
     def setup_method(self):
-        self._deltaPix = 1.0
-        transform_pix2angle = np.array([[1, 0], [0, 1]]) * self._deltaPix
+        self._delta_pix = 1.0
+        transform_pix2angle = np.array([[1, 0], [0, 1]]) * self._delta_pix
         ra_at_xy_0, dec_at_xy_0 = -5, -5
         self.nx, self.ny = 11, 11
         self._supersampling_factor = 4
@@ -33,8 +33,8 @@ class TestRegularGrid_Supersample4(object):
         )
 
     def test_init(self):
-        deltaPix = self.regular_grid.grid_points_spacing
-        assert deltaPix == self._deltaPix / self._supersampling_factor
+        delta_pix = self.regular_grid.grid_points_spacing
+        assert delta_pix == self._delta_pix / self._supersampling_factor
 
         nx, ny = self.regular_grid.num_grid_points_axes
         assert nx == self.nx * self._supersampling_factor
@@ -65,8 +65,8 @@ class TestRegularGrid_Supersample4(object):
 
 class TestRegularGrid_Supersample1(object):
     def setup_method(self):
-        self._deltaPix = 1.0
-        transform_pix2angle = np.array([[1, 0], [0, 1]]) * self._deltaPix
+        self._delta_pix = 1.0
+        transform_pix2angle = np.array([[1, 0], [0, 1]]) * self._delta_pix
         ra_at_xy_0, dec_at_xy_0 = -5, -5
         self.nx, self.ny = 11, 11
         self._supersampling_factor = 1
@@ -93,8 +93,8 @@ class TestRegularGrid_Supersample1(object):
         )
 
     def test_init(self):
-        deltaPix = self.regular_grid.grid_points_spacing
-        assert deltaPix == self._deltaPix / self._supersampling_factor
+        delta_pix = self.regular_grid.grid_points_spacing
+        assert delta_pix == self._delta_pix / self._supersampling_factor
 
         nx, ny = self.regular_grid.num_grid_points_axes
         assert nx == self.nx * self._supersampling_factor

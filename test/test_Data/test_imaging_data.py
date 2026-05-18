@@ -8,26 +8,26 @@ from jaxtronomy.Data.imaging_data import ImageData as ImageData
 
 class Test_ImageData_noisemap(object):
     def setup_method(self):
-        self.numPix = 10
+        self.num_pix = 10
         kwargs_data = {
-            "image_data": np.ones((self.numPix, self.numPix)) * 0.6,
-            "noise_map": 1.1 * np.ones((self.numPix, self.numPix)),
+            "image_data": np.ones((self.num_pix, self.num_pix)) * 0.6,
+            "noise_map": 1.1 * np.ones((self.num_pix, self.num_pix)),
         }
         self.Data = ImageData(**kwargs_data)
         self.Data_ref = ImageData_ref(**kwargs_data)
 
     def test_init(self):
         kwargs_data = {
-            "image_data": np.ones((self.numPix, self.numPix)),
-            "noise_map": 1.1 * np.ones((self.numPix, self.numPix)),
+            "image_data": np.ones((self.num_pix, self.num_pix)),
+            "noise_map": 1.1 * np.ones((self.num_pix, self.num_pix)),
             "likelihood_method": "incorrect",
         }
         npt.assert_raises(ValueError, ImageData, **kwargs_data)
         npt.assert_raises(ValueError, ImageData, antenna_primary_beam=5, **kwargs_data)
 
     def test_log_likelihood(self):
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([0, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([0, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data.log_likelihood(model, mask, additional_error_map)
         log_likelihood_ref = self.Data_ref.log_likelihood(
@@ -35,8 +35,8 @@ class Test_ImageData_noisemap(object):
         )
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=6)
 
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([1, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([1, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data.log_likelihood(model, mask, additional_error_map)
         log_likelihood_ref = self.Data_ref.log_likelihood(
@@ -45,15 +45,15 @@ class Test_ImageData_noisemap(object):
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=6)
 
     def test_update_data(self):
-        self.Data.update_data(np.ones((self.numPix, self.numPix)) * 1.1)
-        self.Data_ref.update_data(np.ones((self.numPix, self.numPix)) * 1.1)
+        self.Data.update_data(np.ones((self.num_pix, self.num_pix)) * 1.1)
+        self.Data_ref.update_data(np.ones((self.num_pix, self.num_pix)) * 1.1)
 
         # Check that the data is updated
         npt.assert_array_almost_equal(self.Data.data, self.Data_ref.data, decimal=8)
 
         # Check that the log likelihoods are correctly calculated after updating the data
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([0, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([0, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data.log_likelihood(model, mask, additional_error_map)
         log_likelihood_ref = self.Data_ref.log_likelihood(
@@ -62,16 +62,16 @@ class Test_ImageData_noisemap(object):
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=5)
 
         # New data shape should match old data shape
-        new_data = np.ones((self.numPix + 2, self.numPix + 2))
+        new_data = np.ones((self.num_pix + 2, self.num_pix + 2))
         npt.assert_raises(ValueError, self.Data.update_data, new_data)
 
 
 class Test_ImageData_without_noisemap(object):
     def setup_method(self):
-        self.numPix = 10
+        self.num_pix = 10
         kwargs_data = {
-            "image_data": np.ones((self.numPix, self.numPix)) * 0.3,
-            "exposure_time": 2 * np.ones((self.numPix, self.numPix)),
+            "image_data": np.ones((self.num_pix, self.num_pix)) * 0.3,
+            "exposure_time": 2 * np.ones((self.num_pix, self.num_pix)),
             "background_rms": 1.103,
         }
         self.Data = ImageData(**kwargs_data)
@@ -84,8 +84,8 @@ class Test_ImageData_without_noisemap(object):
         )
 
     def test_log_likelihood(self):
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([0, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([0, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data.log_likelihood(model, mask, additional_error_map)
         log_likelihood_ref = self.Data_ref.log_likelihood(
@@ -93,8 +93,8 @@ class Test_ImageData_without_noisemap(object):
         )
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=6)
 
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([1, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([1, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data.log_likelihood(model, mask, additional_error_map)
         log_likelihood_ref = self.Data_ref.log_likelihood(
@@ -103,9 +103,9 @@ class Test_ImageData_without_noisemap(object):
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=6)
 
     def test_log_likelihood_interferometry(self):
-        x = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
+        x = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
         model = [x, x]
-        mask = np.tile(np.array([0, 1]), (self.numPix, 5))
+        mask = np.tile(np.array([0, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data_interferometry.log_likelihood(
             model, mask, additional_error_map
@@ -115,7 +115,7 @@ class Test_ImageData_without_noisemap(object):
         )
         npt.assert_almost_equal(log_likelihood, log_likelihood_ref, decimal=5)
 
-        mask = np.tile(np.array([1, 1]), (self.numPix, 5))
+        mask = np.tile(np.array([1, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data_interferometry.log_likelihood(
             model, mask, additional_error_map
@@ -130,9 +130,11 @@ class Test_ImageData_without_noisemap(object):
         c_d_old_ref = self.Data_interferometry_ref.C_D
         npt.assert_array_almost_equal(c_d_old, c_d_old_ref, decimal=7)
 
-        self.Data_interferometry.update_data(np.ones((self.numPix, self.numPix)) * 1.1)
+        self.Data_interferometry.update_data(
+            np.ones((self.num_pix, self.num_pix)) * 1.1
+        )
         self.Data_interferometry_ref.update_data(
-            np.ones((self.numPix, self.numPix)) * 1.1
+            np.ones((self.num_pix, self.num_pix)) * 1.1
         )
 
         # Check that the data is updated
@@ -141,8 +143,8 @@ class Test_ImageData_without_noisemap(object):
         )
 
         # Check that the log likelihoods are correctly calculated after updating the data
-        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.numPix, 2))
-        mask = np.tile(np.array([0, 1]), (self.numPix, 5))
+        model = np.tile(np.array([0.3, -0.1, 0.4, 0.7, -0.9]), (self.num_pix, 2))
+        mask = np.tile(np.array([0, 1]), (self.num_pix, 5))
         additional_error_map = 0.1
         log_likelihood = self.Data_interferometry.log_likelihood(
             model, mask, additional_error_map

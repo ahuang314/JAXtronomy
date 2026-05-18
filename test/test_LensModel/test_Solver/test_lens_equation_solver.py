@@ -72,7 +72,7 @@ class TestLensEquationSolver(object):
         npt.assert_array_almost_equal(x_pos, x_pos_ref, decimal=8)
         npt.assert_array_almost_equal(y_pos, y_pos_ref, decimal=8)
 
-        x_pos, y_pos = lensEquationSolver.findBrightImage(
+        x_pos, y_pos = lensEquationSolver.find_bright_image(
             sourcePos_x,
             sourcePos_y,
             kwargs_lens_list,
@@ -81,7 +81,7 @@ class TestLensEquationSolver(object):
             search_window=search_window,
             num_iter_max=100,
         )
-        x_pos_ref, y_pos_ref = lensEquationSolver_ref.findBrightImage(
+        x_pos_ref, y_pos_ref = lensEquationSolver_ref.find_bright_image(
             sourcePos_x,
             sourcePos_y,
             kwargs_lens_list,
