@@ -1,4 +1,4 @@
-from jaxtronomy.ImSim.Numerics.grid import RegularGrid
+from jaxtronomy.ImSim.Numerics.grid import RegularGrid, AdaptiveGrid
 from jaxtronomy.ImSim.Numerics.convolution import (
     SubgridKernelConvolution,
     PixelKernelConvolution,
@@ -65,15 +65,10 @@ class Numerics(PointSourceRendering):
             the truncation from the psf class will be used. Can be overwritten so that different PSFs are used for
             convolution and point source rendering.
         """
-        if compute_mode != "regular":
-            if compute_mode == "adaptive":
-                raise ValueError(
-                    "AdaptiveConvolution not implemented in Jaxtronomy. Please use lenstronomy instead."
-                )
-            else:
-                raise ValueError(
-                    'compute_mode specified as %s not valid. Options are "regular" and "adaptive" (adaptive only supported in lenstronomy)'
-                )
+        if compute_mode not in ["regular", "adaptive"]:
+            raise ValueError(
+                'compute_mode specified as %s not valid. Options are "regular" and "adaptive" (adaptive only supported in lenstronomy)'
+            )
         # if no super sampling, turn the supersampling convolution off
         self._psf_type = psf.psf_type
         if not isinstance(supersampling_factor, int):
@@ -87,24 +82,59 @@ class Numerics(PointSourceRendering):
         nx, ny = pixel_grid.num_pixel_axes
         transform_pix2angle = pixel_grid.transform_pix2angle
         ra_at_xy_0, dec_at_xy_0 = pixel_grid.radec_at_xy_0
-        # This is only used for adaptive convolution which is not implemented in JAXtronomy
-        # if supersampled_indexes is None:
-        #    supersampled_indexes = np.zeros((nx, ny), dtype=bool)
-        self._grid = RegularGrid(
-            nx,
-            ny,
-            transform_pix2angle,
-            ra_at_xy_0,
-            dec_at_xy_0,
-            supersampling_factor,
-            flux_evaluate_indexes,
-        )
+        if supersampled_indexes is None:
+           supersampled_indexes = np.zeros((nx, ny), dtype=bool)
+        if (
+            compute_mode == "adaptive"
+        ):  # or (compute_mode == 'regular' and supersampling_convolution is False and supersampling_factor > 1):
+            self._grid = AdaptiveGrid(
+                nx,
+                ny,
+                transform_pix2angle,
+                ra_at_xy_0,
+                dec_at_xy_0,
+                supersampled_indexes,
+                supersampling_factor,
+                flux_evaluate_indexes,
+            )
+        else:
+            self._grid = RegularGrid(
+                nx,
+                ny,
+                transform_pix2angle,
+                ra_at_xy_0,
+                dec_at_xy_0,
+                supersampling_factor,
+                flux_evaluate_indexes,
+            )
         if self._psf_type == "PIXEL":
-            if supersampling_convolution is True:
+            if compute_mode == "adaptive" and supersampling_convolution is True:
+                from jaxtronomy.ImSim.Numerics.adaptive_numerics import (
+                    AdaptiveConvolution,
+                )
+
+                kernel_super = psf.kernel_point_source_supersampled(
+                    supersampling_factor
+                )
+                kernel_super = self._supersampling_cut_kernel(
+                    kernel_super, convolution_kernel_size, supersampling_factor
+                )
+                self._conv = AdaptiveConvolution(
+                    kernel_super,
+                    supersampling_factor,
+                    conv_supersample_pixels=supersampled_indexes,
+                    supersampling_kernel_size=supersampling_kernel_size,
+                    compute_pixels=compute_indexes,
+                )
+
+            elif compute_mode == "regular" and supersampling_convolution is True:
                 kernel_super = psf.kernel_point_source_supersampled(
                     supersampling_factor
                 )
                 if convolution_kernel_size is not None:
+                    kernel_super = psf.kernel_point_source_supersampled(
+                        supersampling_factor
+                    )
                     kernel_super = self._supersampling_cut_kernel(
                         kernel_super, convolution_kernel_size, supersampling_factor
                     )
