@@ -19,6 +19,7 @@ from lenstronomy.Data.psf import PSF
 from lenstronomy.LightModel.light_model import LightModel
 
 
+# Test compute_mode = "regular"
 class TestNumerics(object):
     def setup_method(self):
         # we define a model consisting of a single Sersic profile
@@ -344,8 +345,8 @@ class TestNumerics(object):
 # Same as above but testing Adaptive compute mode
 class TestNumerics2(TestNumerics):
     def setup_method(self):
-        self._compute_mode = "adaptive"
         super().setup_method()
+        self._compute_mode = "adaptive"
 
 
 if __name__ == "__main__":
