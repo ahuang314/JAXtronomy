@@ -642,7 +642,7 @@ class LensEquationSolver(object):
             y_mins = y_mins[mag >= magnification_limit]
         return x_mins, y_mins
 
-    def findBrightImage(
+    def find_bright_image(
         self,
         sourcePos_x,
         sourcePos_y,

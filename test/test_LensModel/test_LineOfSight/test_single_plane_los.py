@@ -400,7 +400,7 @@ class TestSinglePlaneLOS(object):
         # )
         #
         # multiplane_solver = LensEquationSolver(lens_model_multiplane_time)
-        # x_image_mp, y_image_mp = multiplane_solver.findBrightImage(
+        # x_image_mp, y_image_mp = multiplane_solver.find_bright_image(
         #     ra_source, dec_source, kwargs_multiplane, numImages=number_of_images
         # )
         #
@@ -413,7 +413,7 @@ class TestSinglePlaneLOS(object):
         # kwargs_time_los = [kwargs_los, kwargs_epl]
         #
         # los_solver = LensEquationSolver(lens_model_los_time)
-        # x_image_los, y_image_los = los_solver.findBrightImage(
+        # x_image_los, y_image_los = los_solver.find_bright_image(
         #     ra_source, dec_source, kwargs_time_los, numImages=number_of_images
         # )
         #
