@@ -304,13 +304,13 @@ class TestLikelihood(object):
             kwargs_special=self.kwargs_special,
         )
 
-        Likelihood = Likelihood(
+        likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=False,
         )
-        Likelihood_ref = Likelihood_ref(
+        likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
@@ -318,27 +318,27 @@ class TestLikelihood(object):
         )
         args[0] = 1000000
         npt.assert_allclose(
-            Likelihood.logL(args, verbose=True),
-            Likelihood_ref.logL(args, verbose=True),
+            likelihood.logL(args, verbose=True),
+            likelihood_ref.logL(args, verbose=True),
             rtol=1e-6,
         )
-        assert Likelihood.logL(args) != -1e18
+        assert likelihood.logL(args) != -1e18
 
         # Test check_bounds = True
-        Likelihood = Likelihood(
+        likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=True,
         )
-        Likelihood_ref = Likelihood_ref(
+        likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=True,
         )
-        assert Likelihood.logL(args) == -1e18
-        assert Likelihood.logL(args) == Likelihood_ref.logL(args)
+        npt.assert_allclose(likelihood.logL(args), -1e18)
+        npt.assert_allclose(likelihood.logL(args), likelihood_ref.logL(args))
 
     def test_kwargs_imaging(self):
         kwargs_imaging = self.Likelihood.kwargs_imaging
@@ -355,14 +355,14 @@ class TestLikelihood(object):
         )
 
         self.kwargs_data_joint["multi_band_list"] = None
-        Likelihood = Likelihood(
+        likelihood = Likelihood(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
             check_bounds=True,
             source_position_likelihood=False,
         )
-        Likelihood_ref = Likelihood_ref(
+        likelihood_ref = Likelihood_ref(
             kwargs_data_joint=self.kwargs_data_joint,
             kwargs_model=self.kwargs_model,
             param_class=self.param_class,
@@ -370,8 +370,8 @@ class TestLikelihood(object):
             source_position_likelihood=False,
         )
 
-        assert Likelihood.logL(args) == 0
-        assert Likelihood.logL(args) == Likelihood_ref.logL(args)
+        assert likelihood.logL(args) == 0
+        assert likelihood.logL(args) == likelihood_ref.logL(args)
 
     def test_lensmodel_autodifferentiation(self):
         del self.kwargs_data_joint["ra_image_list"]
