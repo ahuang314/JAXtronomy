@@ -48,8 +48,8 @@ class TestNumerics(object):
             dec_at_xy_0,
             x_at_radec_0,
             y_at_radec_0,
-            Mpix2coord,
-            Mcoord2pix,
+            transform_pix2coord,
+            transform_coord2pix,
         ) = util.make_grid_with_coordtransform(
             num_pix=num_pix,
             delta_pix=delta_pix,
@@ -68,8 +68,8 @@ class TestNumerics(object):
             dec_at_xy_0,
             x_at_radec_0,
             y_at_radec_0,
-            Mpix2coord,
-            Mcoord2pix,
+            transform_pix2coord,
+            transform_coord2pix,
         ) = util.make_grid_with_coordtransform(
             num_pix=num_pix * self._supersampling_factor,
             delta_pix=delta_pix / self._supersampling_factor,
@@ -90,7 +90,7 @@ class TestNumerics(object):
         kwargs_grid = {
             "nx": num_pix,
             "ny": num_pix,
-            "transform_pix2angle": Mpix2coord,
+            "transform_pix2angle": transform_pix2coord,
             "ra_at_xy_0": ra_at_xy_0,
             "dec_at_xy_0": dec_at_xy_0,
         }

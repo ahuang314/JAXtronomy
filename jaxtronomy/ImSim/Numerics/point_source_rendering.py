@@ -46,7 +46,7 @@ class PointSourceRendering(object):
             dec_pos,
             self._pixel_grid._x_at_radec_0,
             self._pixel_grid._y_at_radec_0,
-            self._pixel_grid._Ma2pix,
+            self._pixel_grid._transform_angle2pix,
         )
         # translate coordinates to higher resolution grid
         x_pos_subgrid = x_pos * subgrid + (subgrid - 1) / 2.0
@@ -93,7 +93,7 @@ class PointSourceRendering(object):
             dec_pos,
             self._pixel_grid._x_at_radec_0,
             self._pixel_grid._y_at_radec_0,
-            self._pixel_grid._Ma2pix,
+            self._pixel_grid._transform_angle2pix,
         )
         psf_kernel = self._psf.kernel_point_source
         psf_variance_map = self._psf.psf_variance_map
