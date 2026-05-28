@@ -7,10 +7,9 @@ import lenstronomy.Util.kernel_util as kernel_util
 from jaxtronomy.ImSim.Numerics.convolution import (
     PixelKernelConvolution,
     SubgridKernelConvolution,
-    SubgridKernelConvolution2,
+    PartialSubgridKernelConvolution,
     GaussianConvolution,
 )
-from jaxtronomy.ImSim.Numerics.adaptive_numerics import AdaptiveConvolution
 from jaxtronomy.ImSim.Numerics.grid import RegularGrid, AdaptiveGrid
 
 from jaxtronomy.ImSim.Numerics.numerics import Numerics
@@ -213,7 +212,7 @@ class TestNumerics(object):
             rtol = 1e-5
 
         assert isinstance(
-            numerics.convolution_class, SubgridKernelConvolution2
+            numerics.convolution_class, PartialSubgridKernelConvolution
         ) or isinstance(numerics.convolution_class, SubgridKernelConvolution)
         assert isinstance(numerics.grid_class, grid_class)
 
