@@ -126,12 +126,13 @@ class AdaptiveGrid(Coordinates1D):
 
     @partial(jit, static_argnums=(0, 2))
     def flux_array2image_low_high(self, flux_array, high_res_return=True):
-        """
+        """Returns the low res and high res images. The high res implementation differs from lenstronomy
+        in that non-supersampled pixels also have their values set (in lenstronomy they are zero).
 
         :param flux_array: 1d array of low and high resolution flux values corresponding to the coordinates_evaluate order
         :param high_res_return: bool, if True also returns the high resolution image
          (needs more computation and is only needed when convolution is performed on the supersampling level)
-        :return: 2d array, 2d array, corresponding to (partial) images in low and high resolution (to be convolved)
+        :return: 2d array, 2d array, corresponding to images in low and high resolution (to be convolved)
         """
         low_res_values = flux_array[0 : self._num_low_res]
         high_res_values = flux_array[self._num_low_res :]
@@ -159,10 +160,11 @@ class AdaptiveGrid(Coordinates1D):
 
     @partial(jit, static_argnums=0)
     def _high_res_image(self, low_res_values, supersampled_values):
-        """
+        """Returns the high res image. This implementation differs from lenstronomy in that
+        non-supersampled pixels also have their values set (in lenstronomy they are zero).
 
-        :param low_res_values: 1d array of non supersampled values corresponding to coordinates
-        :param supersampled_values: 1d array of supersampled values corresponding to coordinates
+        :param low_res_values: 1d array of non supersampled values corresponding to coordinates_evaluate
+        :param supersampled_values: 1d array of supersampled values corresponding to coordinates_evaluate
         :return: 2d array of supersampled image. Outside of the subset of supersampled_indexes,
             pixels have their values copied
         """
@@ -186,7 +188,7 @@ class AdaptiveGrid(Coordinates1D):
     def _average_subgrid(self, subgrid_values):
         """Averages the values over a pixel.
 
-        :param subgrid_values: values (e.g. flux) of subgrid coordinates
+        :param subgrid_values: 2d array values (e.g. flux) of subgrid coordinates
         :return: 1d array of size of the supersampled pixels
         """
         values_2d = jnp.reshape(subgrid_values, (-1, self._num_sub))
@@ -195,9 +197,11 @@ class AdaptiveGrid(Coordinates1D):
     @partial(jit, static_argnums=0)
     def _array2image_subset(self, low_res_values, high_res_values):
         """Maps a 1d array into a (nx, ny) 2d grid with array populating the idex_mask
-        indices.
+        indices. This implementation differs from lenstronomy in that non-supersampled
+        pixels also have their values set (in lenstronomy they are zero).
 
-        :param array: 1d array
+        :param low_res_values: 1d array of non supersampled values corresponding to self._low_res_indexes1d
+        :param high_res_values: 1d array of supersampled values corresponding to self._high_res_indexes1d
         :return: 2d array.
         """
         grid1d = jnp.zeros(self._nx * self._ny)
