@@ -90,9 +90,7 @@ class Numerics(PointSourceRendering):
         ra_at_xy_0, dec_at_xy_0 = pixel_grid.radec_at_xy_0
         if supersampled_indexes is None:
             supersampled_indexes = np.zeros((nx, ny), dtype=bool)
-        if (
-            compute_mode == "adaptive"
-        ):
+        if compute_mode == "adaptive":
             self._grid = AdaptiveGrid(
                 nx,
                 ny,
