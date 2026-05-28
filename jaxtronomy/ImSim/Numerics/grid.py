@@ -9,7 +9,16 @@ from lenstronomy.Data.coord_transforms import Coordinates1D
 
 
 class AdaptiveGrid(Coordinates1D):
-    """Manages a super-sampled grid on the partial image."""
+    """Manages a super-sampled grid on the partial image.
+    
+    NOTE: The implementation of this class differs from lenstronomy. In lenstronomy,
+    the high resolution image only includes the part of the image given by supersampling_indexes.
+    In JAXtronomy, the high resolution image contains the entire image, with the non-supersampled pixels
+    having their values duplicated along the subpixels.
+
+    This difference is due to the fact that JAXtronomy does not implement AdaptiveConvolution, since
+    partial real-space convolution using Numba is not available.
+    """
 
     def __init__(
         self,
@@ -32,7 +41,7 @@ class AdaptiveGrid(Coordinates1D):
         :param supersampling_indexes: bool array of shape nx x ny, corresponding to pixels being super_sampled
         :param supersampling_factor: int, factor (per axis) of super-sampling
         :param flux_evaluate_indexes: bool array of shape nx x ny, corresponding to pixels being evaluated
-         (for both low and high res). Default is None, replaced by setting all pixels to being evaluated.
+            (for both low and high res). Default is None, replaced by setting all pixels to being evaluated.
         """
         super(AdaptiveGrid, self).__init__(transform_pix2angle, ra_at_xy_0, dec_at_xy_0)
         self._nx = nx
@@ -128,10 +137,10 @@ class AdaptiveGrid(Coordinates1D):
         high_res_values = flux_array[self._num_low_res :]
         image_low_res = self._merge_low_high_res(low_res_values, high_res_values)
         if high_res_return is True:
-            image_high_res_partial = self._high_res_image(high_res_values)
+            image_high_res = self._high_res_image(low_res_values, high_res_values)
         else:
-            image_high_res_partial = None
-        return image_low_res, image_high_res_partial
+            image_high_res = None
+        return image_low_res, image_high_res
 
     @partial(jit, static_argnums=0)
     def _merge_low_high_res(self, low_res_values, supersampled_values):
@@ -149,13 +158,15 @@ class AdaptiveGrid(Coordinates1D):
         return util.array2image(array)
 
     @partial(jit, static_argnums=0)
-    def _high_res_image(self, supersampled_values):
+    def _high_res_image(self, low_res_values, supersampled_values):
         """
 
+        :param low_res_values: 1d array of non supersampled values corresponding to coordinates
         :param supersampled_values: 1d array of supersampled values corresponding to coordinates
-        :return: 2d array of supersampled image (zeros outside supersampled frame)
+        :return: 2d array of supersampled image. Outside of the subset of supersampled_indexes,
+            pixels have their values copied
         """
-        high_res = jnp.zeros(
+        high_res_image = jnp.zeros(
             (
                 self._nx * self._supersampling_factor,
                 self._ny * self._supersampling_factor,
@@ -164,12 +175,12 @@ class AdaptiveGrid(Coordinates1D):
         count = 0
         for i in range(self._supersampling_factor):
             for j in range(self._supersampling_factor):
-                selected = supersampled_values[count :: self._num_sub]
-                high_res = high_res.at[
+                high_res_values = supersampled_values[count :: self._num_sub]
+                high_res_image = high_res_image.at[
                     i :: self._supersampling_factor, j :: self._supersampling_factor
-                ].set(self._array2image_subset(selected))
+                ].set(self._array2image_subset(low_res_values, high_res_values))
                 count += 1
-        return high_res
+        return high_res_image
 
     @partial(jit, static_argnums=0)
     def _average_subgrid(self, subgrid_values):
@@ -182,7 +193,7 @@ class AdaptiveGrid(Coordinates1D):
         return jnp.mean(values_2d, axis=1)
 
     @partial(jit, static_argnums=0)
-    def _array2image_subset(self, array):
+    def _array2image_subset(self, low_res_values, high_res_values):
         """Maps a 1d array into a (nx, ny) 2d grid with array populating the idex_mask
         indices.
 
@@ -190,7 +201,9 @@ class AdaptiveGrid(Coordinates1D):
         :return: 2d array.
         """
         grid1d = jnp.zeros(self._nx * self._ny)
-        grid1d = grid1d.at[self._high_res_indexes1d].set(array)
+        grid1d = grid1d.at[self._high_res_indexes1d].set(high_res_values)
+        grid1d = grid1d.at[self._low_res_indexes1d].set(low_res_values)
+
         grid2d = util.array2image(grid1d, self._nx, self._ny)
         return grid2d
 

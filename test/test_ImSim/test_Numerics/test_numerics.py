@@ -7,6 +7,7 @@ import lenstronomy.Util.kernel_util as kernel_util
 from jaxtronomy.ImSim.Numerics.convolution import (
     PixelKernelConvolution,
     SubgridKernelConvolution,
+    SubgridKernelConvolution2,
     GaussianConvolution,
 )
 from jaxtronomy.ImSim.Numerics.adaptive_numerics import AdaptiveConvolution
@@ -112,6 +113,7 @@ class TestNumerics(object):
         }
         self.psf_class_none = PSF(**kwargs_psf_none)
         self._compute_mode = "regular"
+        self._backend = "cpu"
 
     def test_supersampling_cut_kernel(self):
         numerics = Numerics(
@@ -130,7 +132,7 @@ class TestNumerics(object):
         cut_kernel_ref = numerics_ref._supersampling_cut_kernel(
             self.kernel_super, 5, self._supersampling_factor
         )
-        npt.assert_array_almost_equal(cut_kernel, cut_kernel_ref, decimal=8)
+        npt.assert_allclose(cut_kernel, cut_kernel_ref, atol=1e-16, rtol=1e-16)
 
         cut_kernel = numerics._supersampling_cut_kernel(
             self.kernel_super, None, self._supersampling_factor
@@ -140,17 +142,18 @@ class TestNumerics(object):
         )
         npt.assert_array_equal(cut_kernel, cut_kernel_ref)
 
+    # supersampled ray shooting by not supersampled convolution
     def test_no_supersampling_pixel_psf(self):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
-            supersampling_factor=1,
+            supersampling_factor=self._supersampling_factor,
             compute_mode=self._compute_mode,
             supersampling_convolution=False,
             convolution_kernel_size=7,
             convolution_type="fft",
         )
-        assert numerics.grid_supersampling_factor == 1
+        assert numerics.grid_supersampling_factor == 5
         if self._compute_mode == "regular":
             grid_class = RegularGrid
         elif self._compute_mode == "adaptive":
@@ -162,7 +165,7 @@ class TestNumerics(object):
         numerics_ref = Numerics_ref(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_pixel,
-            supersampling_factor=1,
+            supersampling_factor=self._supersampling_factor,
             compute_mode=self._compute_mode,
             supersampling_convolution=False,
             convolution_kernel_size=7,
@@ -174,12 +177,13 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
+        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
-        npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
+        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
 
+    # supersample both ray shooting and convolution
     def test_supersampling_pixel_psf(self):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
@@ -190,17 +194,21 @@ class TestNumerics(object):
             supersampling_kernel_size=5,
             convolution_kernel_size=8,
             convolution_type="fft",
+            backend=self._backend,
         )
         assert numerics.grid_supersampling_factor == 5
 
         if self._compute_mode == "regular":
             grid_class = RegularGrid
-            conv_class = SubgridKernelConvolution
+            atol = 1e-16
+            rtol = 1e-16
         elif self._compute_mode == "adaptive":
             grid_class = AdaptiveGrid
-            conv_class = AdaptiveConvolution
+            # adaptive implementation differs from lenstronomy
+            atol = 5e-5
+            rtol = 1e-5
 
-        assert isinstance(numerics.convolution_class, conv_class)
+        assert isinstance(numerics.convolution_class, SubgridKernelConvolution2) or isinstance(numerics.convolution_class, SubgridKernelConvolution)
         assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
@@ -222,25 +230,26 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_array_almost_equal(re_size_convolve, re_size_convolve_ref, decimal=8)
+        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=atol, rtol=rtol)
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         # These should actually be equal but there's some floating point precision nonsense happening
-        npt.assert_array_almost_equal(
-            re_size_convolve, re_size_convolve_ref, decimal=16
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
         )
 
+    # supersampled ray shooting by not supersampled convolution
     def test_no_supersampling_gaussian_psf(self):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
             compute_mode=self._compute_mode,
-            supersampling_factor=1,
+            supersampling_factor=self._supersampling_factor,
             supersampling_convolution=False,
             convolution_kernel_size=None,
         )
-        assert numerics.grid_supersampling_factor == 1
+        assert numerics.grid_supersampling_factor == 5
         assert isinstance(numerics.convolution_class, GaussianConvolution)
         if self._compute_mode == "regular":
             grid_class = RegularGrid
@@ -252,7 +261,7 @@ class TestNumerics(object):
             pixel_grid=self.pixel_grid,
             psf=self.psf_class_gaussian,
             compute_mode=self._compute_mode,
-            supersampling_factor=1,
+            supersampling_factor=self._supersampling_factor,
             supersampling_convolution=False,
             convolution_kernel_size=None,
         )
@@ -262,20 +271,21 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_array_almost_equal(
-            re_size_convolve, re_size_convolve_ref, decimal=10
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
         )
 
         re_size_convolve = numerics.re_size_convolve(flux + 5.12838)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux + 5.12838)
-        npt.assert_array_almost_equal(
-            re_size_convolve, re_size_convolve_ref, decimal=10
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
         )
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
-        npt.assert_array_equal(re_size_convolve, re_size_convolve_ref)
+        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
 
+    # supersampled ray shooting and supersampled convolution
     def test_supersampling_gaussian_psf(self):
         numerics = Numerics(
             pixel_grid=self.pixel_grid,
@@ -305,15 +315,15 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_array_almost_equal(
-            re_size_convolve, re_size_convolve_ref, decimal=10
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
         )
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
         # These should actually be equal but there's some floating point precision nonsense happening
-        npt.assert_array_almost_equal(
-            re_size_convolve, re_size_convolve_ref, decimal=16
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
         )
 
     def test_psf_none(self):
@@ -370,10 +380,30 @@ class TestNumerics(object):
 
 
 # Same as above but testing Adaptive compute mode
-class TestNumerics2(TestNumerics):
+# Skip Gaussian convolution tests due to lenstronomy incompatibility with adaptive compute mode
+class TestNumerics2(object):
     def setup_method(self):
-        super().setup_method()
+        TestNumerics.setup_method(self)
         self._compute_mode = "adaptive"
+
+    def test_supersampling_pixel_psf(self):
+        TestNumerics.test_supersampling_pixel_psf(self)
+
+    def test_no_supersampling_pixel_psf(self):
+        TestNumerics.test_no_supersampling_pixel_psf(self)
+
+    def test_psf_none(self):
+        TestNumerics.test_psf_none(self)
+
+
+# Same as above but testing the GPU version of SubgridKernelConvolution
+class TestNumerics3(object):
+    def setup_method(self):
+        TestNumerics.setup_method(self)
+        self._backend = "gpu"
+
+    def test_supersampling_pixel_psf(self):
+        TestNumerics.test_supersampling_pixel_psf(self)
 
 
 if __name__ == "__main__":
