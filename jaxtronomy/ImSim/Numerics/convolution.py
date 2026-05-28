@@ -100,9 +100,9 @@ class PixelKernelConvolution(object):
 class SubgridKernelConvolution(object):
     """Class to compute the convolution on a supersampled grid with partial convolution
     computed on the regular grid.
-    
-    For high resolution convolution, one single convolution is performed using the high resolution
-    kernel and high resolution image.
+
+    For high resolution convolution, one single convolution is performed using the high
+    resolution kernel and high resolution image.
     """
 
     def __init__(
@@ -174,11 +174,11 @@ class PartialSubgridKernelConvolution(object):
     """Class to compute the convolution on a supersampled grid with partial convolution
     computed on the regular grid.
 
-    For high resolution convolution, rather than performing one single convolution over the
-    entire image, N^2 low-resolution convolutions are performed and summed, where N is the
-    supersampling factor. On CPU, this is a performance boost over performing one high resolution
-    convolution. This class is effectively the same as lenstronomy's SubgridNumbaConvolution,
-    but with FFT instead of real space convolution.
+    For high resolution convolution, rather than performing one single convolution over
+    the entire image, N^2 low-resolution convolutions are performed and summed, where N
+    is the supersampling factor. On CPU, this is a performance boost over performing one
+    high resolution convolution. This class is effectively the same as lenstronomy's
+    SubgridNumbaConvolution, but with FFT instead of real space convolution.
     """
 
     def __init__(
@@ -216,7 +216,7 @@ class PartialSubgridKernelConvolution(object):
                 self._kernel_high_res_ij.append(jnp.asarray(kernel, dtype=float))
 
         self._conv = PixelKernelConvolution(kernel=None, convolution_type="fft")
-    
+
     @partial(jit, static_argnums=0)
     def re_size_convolve(self, image_low_res, image_high_res):
         """
@@ -230,9 +230,7 @@ class PartialSubgridKernelConvolution(object):
         count = 0
         for i in range(self._supersampling_factor):
             for j in range(self._supersampling_factor):
-                image_select = (
-                    self._partial_image(image_high_res, i, j)
-                )
+                image_select = self._partial_image(image_high_res, i, j)
                 image_conv += self._conv.convolution2d(
                     image_select, self._kernel_high_res_ij[count]
                 )
@@ -257,19 +255,18 @@ class PartialSubgridKernelConvolution(object):
         count = 0
         for i in range(self._supersampling_factor):
             for j in range(self._supersampling_factor):
-                image_ij = (
-                    self._partial_image(image, i, j)
-                )
+                image_ij = self._partial_image(image, i, j)
                 image_conv += self._conv.convolution2d(
                     image_ij, self._kernel_high_res_ij[count]
                 )
                 count += 1
-        
+
         if self._low_res_convolution is True:
             image_resized = image_util.re_size(image, self._supersampling_factor)
-            image_conv += self._conv.convolution2d(image_resized, kernel=self._kernel_low_res)
+            image_conv += self._conv.convolution2d(
+                image_resized, kernel=self._kernel_low_res
+            )
         return image_conv
-
 
     def _partial_image(self, image_high_res, i, j):
         """
@@ -306,6 +303,7 @@ class PartialSubgridKernelConvolution(object):
             kernel_super_match, factor=self._supersampling_factor
         )
         return kernel
+
 
 class GaussianConvolution(object):
     """Class to perform a convolution consisting of multiple 2d Gaussians.

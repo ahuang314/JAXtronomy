@@ -10,7 +10,7 @@ from lenstronomy.Data.coord_transforms import Coordinates1D
 
 class AdaptiveGrid(Coordinates1D):
     """Manages a super-sampled grid on the partial image.
-    
+
     NOTE: The implementation of this class differs from lenstronomy. In lenstronomy,
     the high resolution image only includes the part of the image given by supersampling_indexes.
     In JAXtronomy, the high resolution image contains the entire image, with the non-supersampled pixels

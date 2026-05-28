@@ -56,7 +56,7 @@ class Numerics(PointSourceRendering):
             Pixels indicated with True will be used to perform the surface brightness computation (and possible lensing
             ray-shooting). Pixels marked as False will be assigned a flux value of zero (or ignored in the adaptive
             convolution)
-        :param supersampled_indexes: 2d boolean array (only used in mode='adaptive') of pixels to be supersampled for ray shooting. 
+        :param supersampled_indexes: 2d boolean array (only used in mode='adaptive') of pixels to be supersampled for ray shooting.
             All other pixels set to False will not be supersampled for ray shooting
         :param compute_indexes: unused in JAXtronomy due to lack of adaptive convolution
         :param point_source_supersampling_factor: super-sampling resolution of the point source placing
@@ -193,9 +193,7 @@ class Numerics(PointSourceRendering):
             image_conv = image_low_res
         else:
             # convolve low res grid and high res grid
-            image_conv = self._conv.re_size_convolve(
-                image_low_res, image_high_res
-            )
+            image_conv = self._conv.re_size_convolve(image_low_res, image_high_res)
         return image_conv * self._pixel_width**2
 
     @property

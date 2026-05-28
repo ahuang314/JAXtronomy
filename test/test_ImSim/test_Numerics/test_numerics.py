@@ -177,11 +177,15 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
+        )
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
-        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
+        )
 
     # supersample both ray shooting and convolution
     def test_supersampling_pixel_psf(self):
@@ -208,7 +212,9 @@ class TestNumerics(object):
             atol = 5e-5
             rtol = 1e-5
 
-        assert isinstance(numerics.convolution_class, SubgridKernelConvolution2) or isinstance(numerics.convolution_class, SubgridKernelConvolution)
+        assert isinstance(
+            numerics.convolution_class, SubgridKernelConvolution2
+        ) or isinstance(numerics.convolution_class, SubgridKernelConvolution)
         assert isinstance(numerics.grid_class, grid_class)
 
         numerics_ref = Numerics_ref(
@@ -230,7 +236,9 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux)
-        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=atol, rtol=rtol)
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=atol, rtol=rtol
+        )
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
@@ -283,7 +291,9 @@ class TestNumerics(object):
 
         re_size_convolve = numerics.re_size_convolve(flux, unconvolved=True)
         re_size_convolve_ref = numerics_ref.re_size_convolve(flux, unconvolved=True)
-        npt.assert_allclose(re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16)
+        npt.assert_allclose(
+            re_size_convolve, re_size_convolve_ref, atol=1e-16, rtol=1e-16
+        )
 
     # supersampled ray shooting and supersampled convolution
     def test_supersampling_gaussian_psf(self):
