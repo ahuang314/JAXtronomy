@@ -3,9 +3,13 @@ __author__ = "sibirrer"
 import numpy as np
 import numpy.testing as npt
 from jaxtronomy.ImSim.Numerics.grid import RegularGrid, AdaptiveGrid
-from lenstronomy.ImSim.Numerics.grid import RegularGrid as RegularGrid_ref, AdaptiveGrid as AdaptiveGrid_ref
+from lenstronomy.ImSim.Numerics.grid import (
+    RegularGrid as RegularGrid_ref,
+    AdaptiveGrid as AdaptiveGrid_ref,
+)
 
 import pytest
+
 
 class TestAdaptiveGrid(object):
     def setup_method(self):
@@ -54,14 +58,17 @@ class TestAdaptiveGrid(object):
 
         assert self.adaptive_grid._num_low_res == self.adaptive_grid_ref._num_low_res
 
-        npt.assert_array_equal(self.adaptive_grid._low_res_indexes1d, self.adaptive_grid_ref._low_res_indexes1d)
-        npt.assert_array_equal(self.adaptive_grid._high_res_indexes1d, self.adaptive_grid_ref._high_res_indexes1d)
-
+        npt.assert_array_equal(
+            self.adaptive_grid._low_res_indexes1d,
+            self.adaptive_grid_ref._low_res_indexes1d,
+        )
+        npt.assert_array_equal(
+            self.adaptive_grid._high_res_indexes1d,
+            self.adaptive_grid_ref._high_res_indexes1d,
+        )
 
     def test_flux_array2image_low_high(self):
-        flux_array = np.linspace(
-            0, 10, len(self.adaptive_grid.coordinates_evaluate[0])
-        )
+        flux_array = np.linspace(0, 10, len(self.adaptive_grid.coordinates_evaluate[0]))
         image_low_res, image_high_res = self.adaptive_grid.flux_array2image_low_high(
             flux_array
         )
@@ -74,46 +81,52 @@ class TestAdaptiveGrid(object):
         # jaxtronomy also includes pixel values for the non-supersampled indices
         for i in range(self._supersampling_factor):
             for j in range(self._supersampling_factor):
-                image_ij = image_high_res[i::self._supersampling_factor, j::self._supersampling_factor]
-                image_ij_ref = image_high_res_ref[i::self._supersampling_factor, j::self._supersampling_factor]
+                image_ij = image_high_res[
+                    i :: self._supersampling_factor, j :: self._supersampling_factor
+                ]
+                image_ij_ref = image_high_res_ref[
+                    i :: self._supersampling_factor, j :: self._supersampling_factor
+                ]
 
                 # adds the non supersampled pixel values to the lenstronomy version
-                image_ij_ref += image_low_res_ref * np.invert(self._supersampling_indexes)
-        
+                image_ij_ref += image_low_res_ref * np.invert(
+                    self._supersampling_indexes
+                )
+
                 npt.assert_array_almost_equal(image_ij, image_ij_ref, decimal=12)
 
-
     def test_merge_low_high_res(self):
-        flux_array = np.linspace(
-            0, 10, len(self.adaptive_grid.coordinates_evaluate[0])
-        )
+        flux_array = np.linspace(0, 10, len(self.adaptive_grid.coordinates_evaluate[0]))
         low_res_values = flux_array[0 : self.adaptive_grid._num_low_res]
         high_res_values = flux_array[self.adaptive_grid._num_low_res :]
 
-        image_low_res = self.adaptive_grid._merge_low_high_res(low_res_values, high_res_values)
-        image_low_res_ref = self.adaptive_grid_ref._merge_low_high_res(low_res_values, high_res_values)
+        image_low_res = self.adaptive_grid._merge_low_high_res(
+            low_res_values, high_res_values
+        )
+        image_low_res_ref = self.adaptive_grid_ref._merge_low_high_res(
+            low_res_values, high_res_values
+        )
         npt.assert_array_almost_equal(image_low_res, image_low_res_ref, decimal=12)
 
-
     def test_high_res_image(self):
-        flux_array = np.linspace(
-            0, 10, len(self.adaptive_grid.coordinates_evaluate[0])
-        )
+        flux_array = np.linspace(0, 10, len(self.adaptive_grid.coordinates_evaluate[0]))
         low_res_values = flux_array[0 : self.adaptive_grid._num_low_res]
         high_res_values = flux_array[self.adaptive_grid._num_low_res :]
         image_high_res = self.adaptive_grid._high_res_image(
             low_res_values, high_res_values
         )
-        image_high_res_ref = (
-            self.adaptive_grid_ref._high_res_image(high_res_values)
-        )
+        image_high_res_ref = self.adaptive_grid_ref._high_res_image(high_res_values)
 
         # high res image in jaxtronomy is implemented differently than lenstronomy
         # jaxtronomy also includes pixel values for the non-supersampled indices
         for i in range(self._supersampling_factor):
             for j in range(self._supersampling_factor):
-                image_ij = image_high_res[i::self._supersampling_factor, j::self._supersampling_factor]
-                image_ij_ref = image_high_res_ref[i::self._supersampling_factor, j::self._supersampling_factor]
+                image_ij = image_high_res[
+                    i :: self._supersampling_factor, j :: self._supersampling_factor
+                ]
+                image_ij_ref = image_high_res_ref[
+                    i :: self._supersampling_factor, j :: self._supersampling_factor
+                ]
 
                 # adds the non supersampled pixel values to the lenstronomy version
                 other_pixels = np.zeros_like(image_ij_ref).flatten()
@@ -122,9 +135,7 @@ class TestAdaptiveGrid(object):
                 npt.assert_array_almost_equal(image_ij, image_ij_ref, decimal=12)
 
     def test_average_subgrid(self):
-        flux_array = np.linspace(
-            0, 10, len(self.adaptive_grid.coordinates_evaluate[0])
-        )
+        flux_array = np.linspace(0, 10, len(self.adaptive_grid.coordinates_evaluate[0]))
         low_res_values = flux_array[0 : self.adaptive_grid._num_low_res]
         high_res_values = flux_array[self.adaptive_grid._num_low_res :]
         image_high_res = self.adaptive_grid._high_res_image(
@@ -143,11 +154,13 @@ class TestAdaptiveGrid(object):
 
         for i in range(self._supersampling_factor):
             high_res_values = flux_array[self.adaptive_grid._num_low_res :]
-            high_res_values = high_res_values[i::self._supersampling_factor**2]
+            high_res_values = high_res_values[i :: self._supersampling_factor**2]
 
             # high res image in jaxtronomy is implemented differently than lenstronomy
             # jaxtronomy also includes pixel values for the non-supersampled indices
-            image = self.adaptive_grid._array2image_subset(low_res_values, high_res_values)
+            image = self.adaptive_grid._array2image_subset(
+                low_res_values, high_res_values
+            )
             image_ref = self.adaptive_grid_ref._array2image_subset(high_res_values)
 
             # adds the non supersampled pixel values to the lenstronomy version
@@ -155,7 +168,7 @@ class TestAdaptiveGrid(object):
             image_ref = image_ref.flatten()
             image_ref[self.adaptive_grid_ref._low_res_indexes1d] = low_res_values
             image_ref = image_ref.reshape(shape)
-            npt.assert_array_almost_equal(image, image_ref, decimal=12)        
+            npt.assert_array_almost_equal(image, image_ref, decimal=12)
 
 
 class TestRegularGrid_Supersample4(object):
