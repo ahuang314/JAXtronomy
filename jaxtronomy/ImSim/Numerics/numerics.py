@@ -76,7 +76,6 @@ class Numerics(PointSourceRendering):
             raise ValueError(
                 'compute_mode specified as %s not valid. Options are "regular" and "adaptive" (adaptive only supported in lenstronomy)'
             )
-        # if no super sampling, turn the supersampling convolution off
         self._psf_type = psf.psf_type
         if not isinstance(supersampling_factor, int):
             raise TypeError(
@@ -93,7 +92,7 @@ class Numerics(PointSourceRendering):
             supersampled_indexes = np.zeros((nx, ny), dtype=bool)
         if (
             compute_mode == "adaptive"
-        ):  # or (compute_mode == 'regular' and supersampling_convolution is False and supersampling_factor > 1):
+        ):
             self._grid = AdaptiveGrid(
                 nx,
                 ny,
@@ -127,9 +126,13 @@ class Numerics(PointSourceRendering):
                         kernel_super, convolution_kernel_size, supersampling_factor
                     )
                 if backend == "gpu":
+                    # For supersampled convolution, does one big FFT convolution
                     ConvolutionClass = SubgridKernelConvolution
                 else:
+                    # For supersampled convolution, splits grid and kernel into subgrids and subkernels
+                    # to do many smaller FFT convolutions; faster on CPU
                     ConvolutionClass = PartialSubgridKernelConvolution
+
                 self._conv = ConvolutionClass(
                     kernel_super,
                     supersampling_factor,
