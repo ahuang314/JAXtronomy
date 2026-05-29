@@ -209,11 +209,15 @@ class MultiGaussian(object):
         :return: list of arrays of surface brightness
         """
         f_list = jnp.zeros((len(amp), x.size), dtype=float)
-        
+
         def body_fun(i, f_list):
-            f_list = f_list.at[i].set(Gaussian.function(x, y, amp.at[i].get(), sigma.at[i].get(), center_x, center_y))
+            f_list = f_list.at[i].set(
+                Gaussian.function(
+                    x, y, amp.at[i].get(), sigma.at[i].get(), center_x, center_y
+                )
+            )
             return f_list
-        
+
         return lax.fori_loop(0, len(amp), body_fun, f_list)
 
     @staticmethod
@@ -317,11 +321,13 @@ class MultiGaussianEllipse(object):
             x, y, e1, e2, center_x, center_y
         )
         f_list = jnp.zeros((len(amp), x.size), dtype=float)
-    
+
         def body_fun(i, f_list):
-            f_list = f_list.at[i].set(Gaussian.function(x_, y_, amp.at[i].get(), sigma.at[i].get()))
+            f_list = f_list.at[i].set(
+                Gaussian.function(x_, y_, amp.at[i].get(), sigma.at[i].get())
+            )
             return f_list
-        
+
         return lax.fori_loop(0, len(amp), body_fun, f_list)
 
     @staticmethod

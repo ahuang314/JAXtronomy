@@ -62,14 +62,18 @@ class LinearBasis(LightModelBase):
                     kwargs_new = kwargs_list[i].copy()
                     new = {"amp": 1}
                     kwargs_new.update(new)
-                    response = response.at[n].set(self.func_list[i].function(x, y, **kwargs_new))
+                    response = response.at[n].set(
+                        self.func_list[i].function(x, y, **kwargs_new)
+                    )
                     n += 1
                 elif model in ["MULTI_GAUSSIAN", "MULTI_GAUSSIAN_ELLIPSE"]:
                     num = len(kwargs_list[i]["sigma"])
                     new = {"amp": np.ones(num)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response = response.at[n:n+num].set(self.func_list[i].function_split(x, y, **kwargs_new))
+                    response = response.at[n : n + num].set(
+                        self.func_list[i].function_split(x, y, **kwargs_new)
+                    )
                     n += num
                 elif model in [
                     "SHAPELETS",
@@ -81,7 +85,9 @@ class LinearBasis(LightModelBase):
                     new = {"amp": np.ones(num_param)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response = response.at[n:n+num_param].set(self.func_list[i].function_split(x, y, **kwargs_new))
+                    response = response.at[n : n + num_param].set(
+                        self.func_list[i].function_split(x, y, **kwargs_new)
+                    )
                     n += num_param
                 # elif model in ["SLIT_STARLETS", "SLIT_STARLETS_GEN2"]:
                 #     raise ValueError(
@@ -95,7 +101,8 @@ class LinearBasis(LightModelBase):
         """Returns the the number of linear components per model.
 
         :param kwargs_list: list of keyword arguments of the light profiles
-        :param list_return: bool, if True returns list of individual number of parameters
+        :param list_return: bool, if True returns list of individual number of
+            parameters
         :return: number of linear basis set coefficients
         """
         if list_return:

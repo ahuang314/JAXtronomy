@@ -426,14 +426,16 @@ class ImageLinearFit(ImageModel):
 
             # image *= extinction
             image = self.ImageNumerics.re_size_convolve(image, unconvolved=unconvolved)
-            A = A.at[i+n].set(jnp.nan_to_num(self.image2array_masked(image)))
+            A = A.at[i + n].set(jnp.nan_to_num(self.image2array_masked(image)))
             return A, n, light_response
 
         # response of lensed source profile
         A, _, _ = lax.fori_loop(0, n_source, body_fun, (A, 0, source_light_response))
 
         # response of deflector light profile (or any other un-lensed extended components)
-        A, _, _ = lax.fori_loop(0, n_lens_light, body_fun, (A, n_source, lens_light_response))
+        A, _, _ = lax.fori_loop(
+            0, n_lens_light, body_fun, (A, n_source, lens_light_response)
+        )
 
         # response of point sources
         for i in range(0, n_points):
