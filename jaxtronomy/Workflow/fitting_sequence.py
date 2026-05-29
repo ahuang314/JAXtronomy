@@ -14,6 +14,7 @@ from lenstronomy.Sampling.Samplers.nautilus_sampler import NautilusSampler
 from lenstronomy.Sampling.Samplers.cobaya_sampler import CobayaSampler
 
 import copy
+import jax
 import numpy as np
 import lenstronomy.Util.analysis_util as analysis_util
 
@@ -99,6 +100,10 @@ class FittingSequence(object):
         """
         chain_list = []
         for i, fitting in enumerate(fitting_list):
+            # clear the cache of compiled functions before each iteration to free up memory
+            # since a new Likelihood class is created each time, functions will have to be recompiled anyways
+            jax.clear_caches()
+
             fitting_type = fitting[0]
             kwargs = fitting[1]
 
@@ -359,6 +364,7 @@ class FittingSequence(object):
         n_walkers=None,
         sigma_scale=1,
         threadCount=1,
+        vectorization_batch_size=None,
         init_samples=None,
         re_use_samples=True,
         sampler_type="emcee",
@@ -442,6 +448,7 @@ class FittingSequence(object):
                 sigma_start,
                 mpi=self._mpi,
                 threadCount=threadCount,
+                vectorization_batch_size=vectorization_batch_size,
                 progress=progress,
                 initpos=initpos,
                 backend_filename=backend_filename,
@@ -518,6 +525,7 @@ class FittingSequence(object):
         sigma_scale=1,
         print_key="PSO",
         threadCount=1,
+        vectorization_batch_size=None,
     ):
         """Particle Swarm Optimization.
 
@@ -557,6 +565,7 @@ class FittingSequence(object):
             upper_start,
             init_pos=init_pos,
             threadCount=threadCount,
+            vectorization_batch_size=vectorization_batch_size,
             mpi=self._mpi,
             print_key=print_key,
             verbose=self._verbose,
