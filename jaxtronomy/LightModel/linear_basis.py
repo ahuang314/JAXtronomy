@@ -113,6 +113,7 @@ class LinearBasis(LightModelBase):
             if model in [
                 "SERSIC",
                 "SERSIC_ELLIPSE",
+                "SERSIC_ELLIPSE_Q_PHI",
                 "CORE_SERSIC",
                 "HERNQUIST",
                 "HERNQUIST_ELLIPSE",
