@@ -208,6 +208,7 @@ class MultiGaussian(object):
         :param center_y: center of profile
         :return: list of arrays of surface brightness
         """
+        sigma = jnp.asarray(sigma, dtype=float)
         f_list = jnp.zeros((len(amp), x.size), dtype=float)
 
         def body_fun(i, f_list):
@@ -320,6 +321,7 @@ class MultiGaussianEllipse(object):
         x_, y_ = param_util.transform_e1e2_product_average(
             x, y, e1, e2, center_x, center_y
         )
+        sigma = jnp.asarray(sigma, dtype=float)
         f_list = jnp.zeros((len(amp), x.size), dtype=float)
 
         def body_fun(i, f_list):
