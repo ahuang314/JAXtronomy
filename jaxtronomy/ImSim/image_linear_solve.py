@@ -433,7 +433,9 @@ class ImageLinearFit(ImageModel):
         # response of lensed source profile
         # this if-statement is needed to prevent compiler from trying to index into an empty array
         if n_source != 0:
-            A, _, _ = lax.fori_loop(0, n_source, body_fun, (A, 0, source_light_response))
+            A, _, _ = lax.fori_loop(
+                0, n_source, body_fun, (A, 0, source_light_response)
+            )
 
         # response of deflector light profile (or any other un-lensed extended components)
         if n_lens_light != 0:
