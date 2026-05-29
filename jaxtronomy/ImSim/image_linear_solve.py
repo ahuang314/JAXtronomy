@@ -1,5 +1,6 @@
 from functools import partial
 from jax import jit, lax, numpy as jnp
+import jax
 
 import jaxtronomy.ImSim.de_lens as de_lens
 from jaxtronomy.ImSim.image_model import ImageModel
@@ -430,12 +431,15 @@ class ImageLinearFit(ImageModel):
             return A, n, light_response
 
         # response of lensed source profile
-        A, _, _ = lax.fori_loop(0, n_source, body_fun, (A, 0, source_light_response))
+        # this if-statement is needed to prevent compiler from trying to index into an empty array
+        if n_source != 0:
+            A, _, _ = lax.fori_loop(0, n_source, body_fun, (A, 0, source_light_response))
 
         # response of deflector light profile (or any other un-lensed extended components)
-        A, _, _ = lax.fori_loop(
-            0, n_lens_light, body_fun, (A, n_source, lens_light_response)
-        )
+        if n_lens_light != 0:
+            A, _, _ = lax.fori_loop(
+                0, n_lens_light, body_fun, (A, n_source, lens_light_response)
+            )
 
         # response of point sources
         n = n_source + n_lens_light
