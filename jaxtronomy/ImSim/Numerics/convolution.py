@@ -1,4 +1,4 @@
-from jax import jit, numpy as jnp, tree_util
+from jax import jit, numpy as jnp
 from jax.scipy import signal
 import numpy as np
 
@@ -7,13 +7,15 @@ from lenstronomy.Util import kernel_util
 from jaxtronomy.Util import image_util, util
 from functools import partial
 
-from lenstronomy.Util.package_util import exporter
-
 
 class PixelKernelConvolution(object):
-    """Class to compute convolutions for a given pixelized kernel (fft, grid)"""
+    """Class to compute convolutions for a given pixelized kernel (fft, grid).
+    convolution_type="fft_static" does not result in a speedup in JAXtronomy,
+    thus it is not implemented.
+    
+    """
 
-    def __init__(self, kernel=None, convolution_type="fft_static"):
+    def __init__(self, kernel=None, convolution_type="fft"):
         """
 
         :param kernel: 2d array, convolution kernel, can also be supplied at runtime
@@ -23,31 +25,10 @@ class PixelKernelConvolution(object):
             kernel = jnp.asarray(kernel, dtype=float)
         self._kernel = kernel
         if convolution_type not in ["fft", "grid"]:
-            if convolution_type == "fft_static":
-                self.fftconvolve_static = jit(
-                    partial(signal.fftconvolve, in2=kernel, mode="same")
-                )
-            else:
-                raise ValueError(
-                    "convolution_type %s not supported!" % convolution_type
-                )
+            raise ValueError(
+                "convolution_type %s not supported!" % convolution_type
+            )
         self.convolution_type = convolution_type
-
-    # --------------------------------------------------------------------------------
-    # The following two methods are required to allow the JAX compiler to recognize
-    # this class. Methods involving the self variable can be jit-decorated.
-    # Class methods will need to be recompiled each time a variable in the aux_data
-    # changes to a new value (but there's no need to recompile if it changes to a previous value)
-    def _tree_flatten(self):
-        children = (self._kernel,)
-        aux_data = {"convolution_type": self.convolution_type}
-        return (children, aux_data)
-
-    @classmethod
-    def _tree_unflatten(cls, aux_data, children):
-        return cls(*children, **aux_data)
-
-    # ---------------------------------------------------------------------------------
 
     def pixel_kernel(self, num_pix=None):
         """Access pixelated kernel.
@@ -69,7 +50,7 @@ class PixelKernelConvolution(object):
             self._kernel.T, convolution_type=self.convolution_type
         )
 
-    @jit
+    @partial(jit, static_argnums=0)
     def convolution2d(self, image, kernel=None):
         """
 
@@ -80,13 +61,13 @@ class PixelKernelConvolution(object):
             kernel = self._kernel
         if self.convolution_type == "fft":
             image_conv = signal.fftconvolve(image, kernel, mode="same")
-        elif self.convolution_type == "fft_static":
-            image_conv = self.fftconvolve_static(image)
-        else:
+        elif self.convolution_type == "grid":
             image_conv = signal.convolve2d(image, kernel, mode="same")
+        else:
+            raise ValueError("convolution_type %s not supported!" % self.convolution_type)
         return image_conv
 
-    @jit
+    @partial(jit, static_argnums=0)
     def re_size_convolve(self, image_low_res, image_high_res=None):
         """
 
@@ -110,7 +91,7 @@ class SubgridKernelConvolution(object):
         kernel_supersampled,
         supersampling_factor,
         supersampling_kernel_size=None,
-        convolution_type="fft_static",
+        convolution_type="fft",
     ):
         """
 
@@ -349,7 +330,7 @@ class GaussianConvolution(object):
         self._pad_width = int(kernel_radius)
 
         self.PixelKernelConv = PixelKernelConvolution(
-            kernel, convolution_type="fft_static"
+            kernel, convolution_type="fft"
         )
 
     @partial(jit, static_argnums=0)
@@ -410,10 +391,3 @@ class GaussianConvolution(object):
         kernel = gaussian.function(x, y, amp=1, sigma=self._sigma_scaled)
         kernel = util.array2image(kernel)
         return kernel / jnp.sum(kernel)
-
-
-tree_util.register_pytree_node(
-    PixelKernelConvolution,
-    PixelKernelConvolution._tree_flatten,
-    PixelKernelConvolution._tree_unflatten,
-)

@@ -65,25 +65,6 @@ class TestPixelKernelConvolution(object):
         image_convolved_ref = pixel_conv_ref.convolution2d(self.model)
         npt.assert_almost_equal(image_convolved, image_convolved_ref, decimal=7)
 
-    def test_convolve2d_fft_static(self):
-        kernel = np.ones((3, 3)) * 2
-        kernel[1, 1] = 1
-        kernel = kernel / np.sum(kernel)
-
-        pixel_conv = PixelKernelConvolution(
-            kernel=kernel, convolution_type="fft_static"
-        )
-        pixel_conv_ref = PixelKernelConvolution_ref(
-            kernel=kernel, convolution_type="fft_static"
-        )
-        image_convolved = pixel_conv.convolution2d(self.model)
-        image_convolved_ref = pixel_conv_ref.convolution2d(self.model)
-        npt.assert_almost_equal(image_convolved, image_convolved_ref, decimal=5)
-
-        image_convolved = pixel_conv.convolution2d(self.model * 2 + 0.1)
-        image_convolved_ref = pixel_conv_ref.convolution2d(self.model * 2 + 0.1)
-        npt.assert_almost_equal(image_convolved, image_convolved_ref, decimal=5)
-
     def test_convolve2d_incorrect(self):
         kernel = np.ones((3, 3)) * 2
         kernel[1, 1] = 1
