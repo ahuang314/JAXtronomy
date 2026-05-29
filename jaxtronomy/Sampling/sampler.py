@@ -42,9 +42,9 @@ class Sampler(Sampler_lenstronomy):
             starting particles
         :param threadCount: number of threads in the computation, only relevant for CPU
             parallelization
-        :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
-            computed simultaneously. None defaults to one particle at a time and 0 means to compute
-            all particles simultaneously. 
+        :param vectorization_batch_size: int, only relevant for GPU, determines number
+            of particles computed simultaneously. None defaults to one particle at a
+            time and 0 means to compute all particles simultaneously.
         :param init_pos: numpy array, position of the initial best guess model
         :param mpi: bool, if True, makes instance of MPIPool to allow for MPI execution
             (must be False in JAXtronomy)
@@ -74,11 +74,14 @@ class Sampler(Sampler_lenstronomy):
                 )
                 n_particles = new_n_particles
             PSO_class = ParticleSwarmOptimizer
-        else: # For GPU
+        else:  # For GPU
             PSO_class = ParticleSwarmOptimizerJIT
 
         logL_func = prepare_logL_func(
-            backend=backend, logL_func=self.chain.logL, threadCount=threadCount, vectorization_batch_size=vectorization_batch_size
+            backend=backend,
+            logL_func=self.chain.logL,
+            threadCount=threadCount,
+            vectorization_batch_size=vectorization_batch_size,
         )
 
         if lower_start is None or upper_start is None:
@@ -154,7 +157,7 @@ class Sampler(Sampler_lenstronomy):
         :type threadCount: integer
         :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
             computed simultaneously. None defaults to one particle at a time and 0 means to compute
-            all particles simultaneously. 
+            all particles simultaneously.
         :type vectorization_batch_size: integer
         :param initpos: initial walker position to start sampling (optional)
         :type initpos: numpy array of size num param x num walkser
@@ -194,7 +197,10 @@ class Sampler(Sampler_lenstronomy):
                 n_walkers = new_n_walkers
 
         logL_func = prepare_logL_func(
-            backend=backend, logL_func=self.chain.logL, threadCount=threadCount, vectorization_batch_size=vectorization_batch_size
+            backend=backend,
+            logL_func=self.chain.logL,
+            threadCount=threadCount,
+            vectorization_batch_size=vectorization_batch_size,
         )
 
         import emcee
@@ -237,9 +243,9 @@ def prepare_logL_func(backend, logL_func, threadCount, vectorization_batch_size)
         likelihood.
     :param threadCount: number of threads in the computation, only relevant for CPU
         parallelization
-    :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
-        computed simultaneously. None defaults to one particle at a time and 0 means to compute
-        all particles simultaneously. 
+    :param vectorization_batch_size: int, only relevant for GPU, determines number of
+        particles computed simultaneously. None defaults to one particle at a time and 0
+        means to compute all particles simultaneously.
     :returns: a callable function that takes a set of position vectors and returns a set
         of log likelihoods.
     """
