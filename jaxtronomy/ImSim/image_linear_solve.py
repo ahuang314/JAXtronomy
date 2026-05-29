@@ -438,6 +438,7 @@ class ImageLinearFit(ImageModel):
         )
 
         # response of point sources
+        n = n_source + n_lens_light
         for i in range(0, n_points):
             # NOTE: Primary beam not supported in jaxtronomy
             # raise warnings when primary beam is attempted to be applied for point sources
@@ -447,8 +448,7 @@ class ImageLinearFit(ImageModel):
             image = self.ImageNumerics.point_source_rendering(
                 ra_pos[i], dec_pos[i], amp[i]
             )
-            A = A.at[n].set(jnp.nan_to_num(self.image2array_masked(image)))
-            n += 1
+            A = A.at[i + n].set(jnp.nan_to_num(self.image2array_masked(image)))
         return A * self._flux_scaling
 
     @partial(jit, static_argnums=(0,))
