@@ -93,8 +93,6 @@ class LinearBasis(LightModelBase):
                 #     raise ValueError(
                 #         "'{}' model does not support function split".format(model)
                 #     )
-                else:
-                    raise ValueError("model type %s not valid!" % model)
         return response, n
 
     def num_param_linear(self, kwargs_list, list_return=False):
