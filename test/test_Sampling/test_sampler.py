@@ -243,7 +243,10 @@ class TestSampler(object):
             return args**2 - 4
 
         new_logL_func = prepare_logL_func(
-            backend="gpu", logL_func=logL_func, threadCount=None, vectorization_batch_size=0
+            backend="gpu",
+            logL_func=logL_func,
+            threadCount=None,
+            vectorization_batch_size=0,
         )
 
         x = np.array([[1, 2], [3, 4]])
@@ -252,7 +255,10 @@ class TestSampler(object):
         npt.assert_allclose(expected, logL, atol=1e-16, rtol=1e-16)
 
         new_logL_func = prepare_logL_func(
-            backend="cpu", logL_func=logL_func, threadCount=1, vectorization_batch_size=None
+            backend="cpu",
+            logL_func=logL_func,
+            threadCount=1,
+            vectorization_batch_size=None,
         )
         logL = new_logL_func(x)
         npt.assert_allclose(expected, logL, atol=1e-16, rtol=1e-16)
