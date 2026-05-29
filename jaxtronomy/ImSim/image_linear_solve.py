@@ -1,9 +1,8 @@
 from functools import partial
-from jax import jit, numpy as jnp
+from jax import jit, lax, numpy as jnp
 
 import jaxtronomy.ImSim.de_lens as de_lens
 from jaxtronomy.ImSim.image_model import ImageModel
-from jaxtronomy.ImSim.Numerics.convolution import PixelKernelConvolution
 
 __all__ = ["ImageLinearFit"]
 
@@ -414,10 +413,9 @@ class ImageLinearFit(ImageModel):
 
         num_response = self.num_data_evaluate
         A = jnp.zeros((num_param, num_response))
-        n = 0
         # response of lensed source profile
-        for i in range(0, n_source):
-            image = source_light_response[i]
+        def body_fun(i, A):
+            image = source_light_response.at[i].get()
 
             # NOTE: Primary beam not supported in jaxtronomy
             # multiply with primary beam before convolution
@@ -426,9 +424,13 @@ class ImageLinearFit(ImageModel):
 
             # image *= extinction
             image = self.ImageNumerics.re_size_convolve(image, unconvolved=unconvolved)
-            A = A.at[n].set(jnp.nan_to_num(self.image2array_masked(image)))
-            n += 1
+            A = A.at[i].set(jnp.nan_to_num(self.image2array_masked(image)))
+            return A
+
+        A = lax.fori_loop(0, n_source, body_fun, A)
+
         # response of deflector light profile (or any other un-lensed extended components)
+        n = n_source
         for i in range(0, n_lens_light):
             image = lens_light_response[i]
 
