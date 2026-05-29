@@ -30,7 +30,8 @@ class LinearBasis(LightModelBase):
         :param kwargs_list: keyword argument list of light profile
         :param k: integer or tuple of integers for selecting subsets of light profiles
         """
-        response = []
+        num_param = self.num_param_linear(kwargs_list)
+        response = jnp.zeros((num_param, x.size), dtype=float)
         n = 0
         bool_list = self._bool_list(k=k)
         for i, model in enumerate(self.profile_type_list):
@@ -61,14 +62,14 @@ class LinearBasis(LightModelBase):
                     kwargs_new = kwargs_list[i].copy()
                     new = {"amp": 1}
                     kwargs_new.update(new)
-                    response += [self.func_list[i].function(x, y, **kwargs_new)]
+                    response = response.at[n].set(self.func_list[i].function(x, y, **kwargs_new))
                     n += 1
                 elif model in ["MULTI_GAUSSIAN", "MULTI_GAUSSIAN_ELLIPSE"]:
                     num = len(kwargs_list[i]["sigma"])
                     new = {"amp": np.ones(num)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response += self.func_list[i].function_split(x, y, **kwargs_new)
+                    response = response.at[n:n+num].set(self.func_list[i].function_split(x, y, **kwargs_new))
                     n += num
                 elif model in [
                     "SHAPELETS",
@@ -80,7 +81,7 @@ class LinearBasis(LightModelBase):
                     new = {"amp": np.ones(num_param)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response += self.func_list[i].function_split(x, y, **kwargs_new)
+                    response = response.at[n:n+num_param].set(self.func_list[i].function_split(x, y, **kwargs_new))
                     n += num_param
                 # elif model in ["SLIT_STARLETS", "SLIT_STARLETS_GEN2"]:
                 #     raise ValueError(
@@ -90,28 +91,17 @@ class LinearBasis(LightModelBase):
                     raise ValueError("model type %s not valid!" % model)
         return response, n
 
-    @partial(jit, static_argnums=(0, 2))
     def num_param_linear(self, kwargs_list, list_return=False):
-        """
+        """Returns the the number of linear components per model.
 
         :param kwargs_list: list of keyword arguments of the light profiles
         :param list_return: bool, if True returns list of individual number of parameters
         :return: number of linear basis set coefficients
         """
-        n_list = self.num_param_linear_list(kwargs_list)
-        if not list_return:
-            return jnp.sum(jnp.array(n_list))
-        return n_list
-
-    @partial(jit, static_argnums=(0,))
-    def num_param_linear_list(self, kwargs_list):
-        """Returns the list (in order of the light profiles) of the number of linear
-        components per model.
-
-        :param kwargs_list: list of keyword arguments of the light profiles
-        :return: number of linear basis set coefficients
-        """
-        n_list = []
+        if list_return:
+            n_list = []
+        else:
+            n = 0
         for i, model in enumerate(self.profile_type_list):
             if model in [
                 "SERSIC",
@@ -135,10 +125,16 @@ class LinearBasis(LightModelBase):
                 "LINEAR_ELLIPSE",
                 "LINE_PROFILE",
             ]:
-                n_list += [1]
+                if list_return:
+                    n_list += [1]
+                else:
+                    n += 1
             elif model in ["MULTI_GAUSSIAN", "MULTI_GAUSSIAN_ELLIPSE"]:
                 num = len(kwargs_list[i]["sigma"])
-                n_list += [num]
+                if list_return:
+                    n_list += [num]
+                else:
+                    n += num
             elif model in [
                 "SHAPELETS",
                 "SHAPELETS_POLAR",
@@ -146,7 +142,10 @@ class LinearBasis(LightModelBase):
                 "SHAPELETS_ELLIPSE",
             ]:
                 num_param = self.func_list[i].num_param
-                n_list += [num_param]
+                if list_return:
+                    n_list += [num_param]
+                else:
+                    n += num_param
             # elif model in ["SLIT_STARLETS", "SLIT_STARLETS_GEN2"]:
             #     n_scales = kwargs_list[i]["n_scales"]
             #     n_pixels = kwargs_list[i]["n_pixels"]
@@ -156,7 +155,19 @@ class LinearBasis(LightModelBase):
             #     ]  # TODO : find a way to make it the number of source pixels
             else:
                 raise ValueError("model type %s not valid!" % model)
-        return n_list
+        if list_return:
+            return n_list
+        else:
+            return n
+
+    def num_param_linear_list(self, kwargs_list):
+        """Returns the list (in order of the light profiles) of the number of linear
+        components per model.
+
+        :param kwargs_list: list of keyword arguments of the light profiles
+        :return: number of linear basis set coefficients
+        """
+        return self.num_param_linear(kwargs_list, True)
 
     @partial(jit, static_argnums=(0,))
     def update_linear(self, param, i, kwargs_list):
