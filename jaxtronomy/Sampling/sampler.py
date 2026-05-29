@@ -2,12 +2,13 @@ import time
 
 import numpy as np
 from jaxtronomy.Sampling.Samplers.pso import ParticleSwarmOptimizer
+from jaxtronomy.Sampling.Samplers.pso_jit import ParticleSwarmOptimizerJIT
 from lenstronomy.Sampling.sampler import Sampler as Sampler_lenstronomy
 from lenstronomy.Util import sampling_util
 
 from functools import partial
 import jax
-from jax import lax
+from jax import jit, lax
 import warnings
 
 __all__ = ["Sampler"]
@@ -24,6 +25,7 @@ class Sampler(Sampler_lenstronomy):
         lower_start=None,
         upper_start=None,
         threadCount=1,
+        vectorization_batch_size=None,
         init_pos=None,
         mpi=False,
         print_key="PSO",
@@ -40,6 +42,9 @@ class Sampler(Sampler_lenstronomy):
             starting particles
         :param threadCount: number of threads in the computation, only relevant for CPU
             parallelization
+        :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
+            computed simultaneously. None defaults to one particle at a time and 0 means to compute
+            all particles simultaneously. 
         :param init_pos: numpy array, position of the initial best guess model
         :param mpi: bool, if True, makes instance of MPIPool to allow for MPI execution
             (must be False in JAXtronomy)
@@ -48,11 +53,6 @@ class Sampler(Sampler_lenstronomy):
         :return: kwargs_result (of best fit), [lnlikelihood of samples, positions of
             samples, velocity of samples])
         """
-        if threadCount > len(jax.devices()):
-            raise ValueError(
-                f"Supplied threadCount {threadCount} is greater than {len(jax.devices())}, the number of devices detectable by JAX.\n"
-                f"To ensure that the correct number of devices is recognized by JAX, an environment variable must be set; see JAX or JAXtronomy documentation."
-            )
         if mpi:
             raise ValueError(
                 "mpi must be False in JAXtronomy since parallelization is done through JAX"
@@ -60,6 +60,12 @@ class Sampler(Sampler_lenstronomy):
 
         backend = jax.default_backend()
         if backend == "cpu":
+            if threadCount > len(jax.devices()):
+                raise ValueError(
+                    f"Supplied threadCount {threadCount} is greater than {len(jax.devices())}, the number of CPU devices detectable by JAX.\n"
+                    f"To ensure that the correct number of devices is recognized by JAX, an environment variable must be set; see JAX or JAXtronomy documentation."
+                )
+
             if n_particles % threadCount != 0:
                 new_n_particles = int(((n_particles // threadCount) + 1) * threadCount)
                 warnings.warn(
@@ -67,9 +73,12 @@ class Sampler(Sampler_lenstronomy):
                     f"n_particles will automatically be set to {new_n_particles}."
                 )
                 n_particles = new_n_particles
+            PSO_class = ParticleSwarmOptimizer
+        else: # For GPU
+            PSO_class = ParticleSwarmOptimizerJIT
 
         logL_func = prepare_logL_func(
-            backend=backend, logL_func=self.chain.logL, threadCount=threadCount
+            backend=backend, logL_func=self.chain.logL, threadCount=threadCount, vectorization_batch_size=vectorization_batch_size
         )
 
         if lower_start is None or upper_start is None:
@@ -81,7 +90,7 @@ class Sampler(Sampler_lenstronomy):
             lower_start = np.maximum(lower_start, self.lower_limit)
             upper_start = np.minimum(upper_start, self.upper_limit)
 
-        pso = ParticleSwarmOptimizer(logL_func, lower_start, upper_start, n_particles)
+        pso = PSO_class(logL_func, lower_start, upper_start, n_particles)
 
         if init_pos is None:
             init_pos = (upper_start - lower_start) / 2 + lower_start
@@ -97,12 +106,12 @@ class Sampler(Sampler_lenstronomy):
         kwargs_return = self.chain.param.args2kwargs(result)
         if verbose:
             print(
-                pso.global_best.fitness
+                pso.global_best_fitness
                 * 2
                 / (max(self.chain.effective_num_data_points(**kwargs_return), 1)),
                 "reduced X^2 of best position",
             )
-            print(pso.global_best.fitness, "log likelihood")
+            print(pso.global_best_fitness, "log likelihood")
             self._print_result(result=result)
             time_end = time.time()
             print(time_end - time_start, "time used for ", print_key)
@@ -119,6 +128,7 @@ class Sampler(Sampler_lenstronomy):
         mpi=False,
         progress=False,
         threadCount=1,
+        vectorization_batch_size=None,
         initpos=None,
         backend_filename=None,
         start_from_backend=False,
@@ -142,6 +152,10 @@ class Sampler(Sampler_lenstronomy):
         :type progress: bool
         :param threadCount: number of threads used for computation, only relevant for CPU parallelization
         :type threadCount: integer
+        :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
+            computed simultaneously. None defaults to one particle at a time and 0 means to compute
+            all particles simultaneously. 
+        :type vectorization_batch_size: integer
         :param initpos: initial walker position to start sampling (optional)
         :type initpos: numpy array of size num param x num walkser
         :param backend_filename: name of the HDF5 file where sampling state is saved (through emcee backend engine)
@@ -156,11 +170,6 @@ class Sampler(Sampler_lenstronomy):
             raise ValueError(
                 "mpi must be False in JAXtronomy, since parallelization is done through JAX"
             )
-        if threadCount > len(jax.devices()):
-            raise ValueError(
-                f"Supplied threadCount {threadCount} is greater than {len(jax.devices())}, the number of devices detectable by JAX.\n"
-                f"To ensure that the correct number of devices is recognized by JAX, an environment variable must be set; see JAX or JAXtronomy documentation."
-            )
         if start_from_backend:
             raise ValueError("start_from_backend must be False in JAXtronomy")
         if backend_filename is not None:
@@ -168,6 +177,12 @@ class Sampler(Sampler_lenstronomy):
 
         backend = jax.default_backend()
         if backend == "cpu":
+            if threadCount > len(jax.devices()):
+                raise ValueError(
+                    f"Supplied threadCount {threadCount} is greater than {len(jax.devices())}, the number of CPU devices detectable by JAX.\n"
+                    f"To ensure that the correct number of devices is recognized by JAX, an environment variable must be set; see JAX or JAXtronomy documentation."
+                )
+
             if n_walkers % (2 * threadCount) != 0:
                 new_n_walkers = int(
                     ((n_walkers // (2 * threadCount)) + 1) * (2 * threadCount)
@@ -179,7 +194,7 @@ class Sampler(Sampler_lenstronomy):
                 n_walkers = new_n_walkers
 
         logL_func = prepare_logL_func(
-            backend=backend, logL_func=self.chain.logL, threadCount=threadCount
+            backend=backend, logL_func=self.chain.logL, threadCount=threadCount, vectorization_batch_size=vectorization_batch_size
         )
 
         import emcee
@@ -212,7 +227,7 @@ class Sampler(Sampler_lenstronomy):
         return flat_samples, dist
 
 
-def prepare_logL_func(backend, logL_func, threadCount):
+def prepare_logL_func(backend, logL_func, threadCount, vectorization_batch_size):
     """Parallelizes the logL function for CPU backend, and vectorizes the logL function
     for GPU backend. Only the first threadCount cores will be used for CPU
     parallelization. TPU support has not been implemented.
@@ -222,6 +237,9 @@ def prepare_logL_func(backend, logL_func, threadCount):
         likelihood.
     :param threadCount: number of threads in the computation, only relevant for CPU
         parallelization
+    :param vectorization_batch_size: int, only relevant for GPU, determines number of particles
+        computed simultaneously. None defaults to one particle at a time and 0 means to compute
+        all particles simultaneously. 
     :returns: a callable function that takes a set of position vectors and returns a set
         of log likelihoods.
     """
@@ -232,18 +250,19 @@ def prepare_logL_func(backend, logL_func, threadCount):
         pmapped_func = jax.pmap(mapped_func, devices=devices)
 
         def new_logL_func(args):
-            args = np.array(args)
+            args = np.asarray(args, dtype=float)
             old_shape = args.shape
             new_shape = (threadCount, int(old_shape[0] / threadCount), old_shape[-1])
             result = pmapped_func(args.reshape(new_shape))
-            return np.array(result).flatten()
+            return np.asarray(result, dtype=float).flatten()
 
     elif backend == "gpu":
-        vmapped_func = jax.jit(jax.vmap(logL_func))
 
+        vmapped_func = partial(lax.map, logL_func, batch_size=vectorization_batch_size)
+
+        @jit
         def new_logL_func(args):
-            result = vmapped_func(args)
-            return np.array(result).flatten()
+            return vmapped_func(args).flatten()
 
     else:
         raise ValueError("backend must be either 'cpu' or 'gpu'")
