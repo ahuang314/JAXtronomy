@@ -413,9 +413,11 @@ class ImageLinearFit(ImageModel):
 
         num_response = self.num_data_evaluate
         A = jnp.zeros((num_param, num_response))
-        # response of lensed source profile
-        def body_fun(i, A):
-            image = source_light_response.at[i].get()
+
+        # This function loops through the light responses
+        def body_fun(i, val):
+            A, n, light_response = val
+            image = light_response.at[i].get()
 
             # NOTE: Primary beam not supported in jaxtronomy
             # multiply with primary beam before convolution
@@ -424,24 +426,15 @@ class ImageLinearFit(ImageModel):
 
             # image *= extinction
             image = self.ImageNumerics.re_size_convolve(image, unconvolved=unconvolved)
-            A = A.at[i].set(jnp.nan_to_num(self.image2array_masked(image)))
-            return A
+            A = A.at[i+n].set(jnp.nan_to_num(self.image2array_masked(image)))
+            return A, n, light_response
 
-        A = lax.fori_loop(0, n_source, body_fun, A)
+        # response of lensed source profile
+        A, _, _ = lax.fori_loop(0, n_source, body_fun, (A, 0, source_light_response))
 
         # response of deflector light profile (or any other un-lensed extended components)
-        n = n_source
-        for i in range(0, n_lens_light):
-            image = lens_light_response[i]
+        A, _, _ = lax.fori_loop(0, n_lens_light, body_fun, (A, n_source, lens_light_response))
 
-            # NOTE: Primary beam not supported in jaxtronomy
-            # multiply with primary beam before convolution
-            # if self._pb is not None:
-            #    image *= self._pb_1d
-
-            image = self.ImageNumerics.re_size_convolve(image, unconvolved=unconvolved)
-            A = A.at[n].set(jnp.nan_to_num(self.image2array_masked(image)))
-            n += 1
         # response of point sources
         for i in range(0, n_points):
             # NOTE: Primary beam not supported in jaxtronomy
