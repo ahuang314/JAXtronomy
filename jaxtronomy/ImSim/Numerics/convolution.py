@@ -10,9 +10,9 @@ from functools import partial
 
 class PixelKernelConvolution(object):
     """Class to compute convolutions for a given pixelized kernel (fft, grid).
-    convolution_type="fft_static" does not result in a speedup in JAXtronomy,
-    thus it is not implemented.
-    
+
+    convolution_type="fft_static" does not result in a speedup in JAXtronomy, thus it is
+    not implemented.
     """
 
     def __init__(self, kernel=None, convolution_type="fft"):
@@ -25,9 +25,7 @@ class PixelKernelConvolution(object):
             kernel = jnp.asarray(kernel, dtype=float)
         self._kernel = kernel
         if convolution_type not in ["fft", "grid"]:
-            raise ValueError(
-                "convolution_type %s not supported!" % convolution_type
-            )
+            raise ValueError("convolution_type %s not supported!" % convolution_type)
         self.convolution_type = convolution_type
 
     def pixel_kernel(self, num_pix=None):
@@ -64,7 +62,9 @@ class PixelKernelConvolution(object):
         elif self.convolution_type == "grid":
             image_conv = signal.convolve2d(image, kernel, mode="same")
         else:
-            raise ValueError("convolution_type %s not supported!" % self.convolution_type)
+            raise ValueError(
+                "convolution_type %s not supported!" % self.convolution_type
+            )
         return image_conv
 
     @partial(jit, static_argnums=0)
@@ -329,9 +329,7 @@ class GaussianConvolution(object):
         # Even though kernel_radius is already an int, we need to apply int because of some JAX nonsense
         self._pad_width = int(kernel_radius)
 
-        self.PixelKernelConv = PixelKernelConvolution(
-            kernel, convolution_type="fft"
-        )
+        self.PixelKernelConv = PixelKernelConvolution(kernel, convolution_type="fft")
 
     @partial(jit, static_argnums=0)
     def convolution2d(self, image):
