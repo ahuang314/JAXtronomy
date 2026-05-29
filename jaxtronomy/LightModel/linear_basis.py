@@ -161,8 +161,10 @@ class LinearBasis(LightModelBase):
             #     n_list += [
             #         num_param
             #     ]  # TODO : find a way to make it the number of source pixels
-            else:
-                raise ValueError("model type %s not valid!" % model)
+            # NOTE: the following line of code is impossible to execute since JAXtronomy
+            # doesn't contain any light profiles not included in the above if-statements
+            # else:
+            #     raise ValueError("model type %s not valid!" % model)
         if list_return:
             return n_list
         else:
