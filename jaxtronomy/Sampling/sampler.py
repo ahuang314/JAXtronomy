@@ -15,8 +15,10 @@ __all__ = ["Sampler"]
 
 
 class Sampler(Sampler_lenstronomy):
-    """Inherits samplers from lenstronomy, but modifies the PSO and mcmc to parallelize
-    computations across hardware devices."""
+    """Inherits samplers from lenstronomy, but modifies the PSO and emcee to parallelize
+    computations if using CPU, and vectorize computations if using GPU. The device
+    given by jax.default_device() will be used for computations.
+    """
 
     def pso(
         self,
@@ -24,9 +26,9 @@ class Sampler(Sampler_lenstronomy):
         n_iterations,
         lower_start=None,
         upper_start=None,
+        init_pos=None,
         threadCount=1,
         vectorization_batch_size=None,
-        init_pos=None,
         mpi=False,
         print_key="PSO",
         verbose=True,
@@ -40,12 +42,12 @@ class Sampler(Sampler_lenstronomy):
             starting particles
         :param upper_start: numpy array, upper end parameter of the values of the
             starting particles
+        :param init_pos: numpy array, position of the initial best guess model
         :param threadCount: number of threads in the computation, only relevant for CPU
             parallelization
         :param vectorization_batch_size: int, only relevant for GPU, determines number
             of particles computed simultaneously. None defaults to one particle at a
             time and 0 means to compute all particles simultaneously.
-        :param init_pos: numpy array, position of the initial best guess model
         :param mpi: bool, if True, makes instance of MPIPool to allow for MPI execution
             (must be False in JAXtronomy)
         :param print_key: string, prints the process name in the progress bar (optional)
@@ -57,6 +59,8 @@ class Sampler(Sampler_lenstronomy):
             raise ValueError(
                 "mpi must be False in JAXtronomy since parallelization is done through JAX"
             )
+
+        PSO_class = ParticleSwarmOptimizerJIT
 
         backend = jax.default_backend()
         if backend == "cpu":
@@ -73,9 +77,8 @@ class Sampler(Sampler_lenstronomy):
                     f"n_particles will automatically be set to {new_n_particles}."
                 )
                 n_particles = new_n_particles
+            # Use non-jit version of PSO if parallelizing across cpu cores
             PSO_class = ParticleSwarmOptimizer
-        else:  # For GPU
-            PSO_class = ParticleSwarmOptimizerJIT
 
         logL_func = prepare_logL_func(
             backend=backend,
