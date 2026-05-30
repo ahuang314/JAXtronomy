@@ -16,8 +16,9 @@ __all__ = ["Sampler"]
 
 class Sampler(Sampler_lenstronomy):
     """Inherits samplers from lenstronomy, but modifies the PSO and emcee to parallelize
-    computations if using CPU, and vectorize computations if using GPU. The device
-    given by jax.default_device() will be used for computations.
+    computations if using CPU, and vectorize computations if using GPU.
+
+    The device given by jax.default_device() will be used for computations.
     """
 
     def pso(
