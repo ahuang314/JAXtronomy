@@ -162,9 +162,9 @@ class ParticleSwarmOptimizerJIT(object):
             within m of the global best fitness
         :param n: stop criterion tolerance; positions of best p% of particles must be
             within n euclidean distance of the global best position
-        :param early_stop_tolerance: float or None; if set, will terminate the PSO early if
-            |2 * global_best_fitness| < early_stop_tolerance. This takes priority over the
-            fitness and spatial convergence criteria.
+        :param early_stop_tolerance: float or None; if set, will terminate the PSO early
+            if |2 * global_best_fitness| < early_stop_tolerance. This takes priority
+            over the fitness and spatial convergence criteria.
         :param verbose: if True, prints out the iteration number as the loop progresses
         :type verbose: boolean
         """
@@ -352,9 +352,9 @@ class ParticleSwarmOptimizerJIT(object):
 
     @partial(jit, static_argnums=(0, 1))
     def _converged_fit(self, p, m, global_best_fitness, personal_best_fitnesses):
-        """Given the global best fitness and an array of personal best fitnesses of
-        the swarm, determine whether or not the average fitness of the best p% of
-        particles is within m of the global best fitness.
+        """Given the global best fitness and an array of personal best fitnesses of the
+        swarm, determine whether or not the average fitness of the best p% of particles
+        is within m of the global best fitness.
 
         :param p: float between 0 and 1, determines what percent of particles to look at
             to compute convergence
@@ -364,8 +364,8 @@ class ParticleSwarmOptimizerJIT(object):
         :param global_best_fitness: float, the current best fitness of the swarm
         :param personal_best_fitnesses: 1d array of floats with size n_particles
             containing the best fitnesses for each particle in the swarm
-        :return: whether or not the average fitness of the best p% of particles is within m of
-            the global best fitness
+        :return: whether or not the average fitness of the best p% of particles is
+            within m of the global best fitness
         :rtype: bool
         """
 
@@ -386,11 +386,12 @@ class ParticleSwarmOptimizerJIT(object):
         :type p: float
         :param n: tolerance criteria for euclidean distance
         :type n: float
-        :param global_best_position: 1d array of size len(args), current best position of swarm
+        :param global_best_position: 1d array of size len(args), current best position
+            of swarm
         :type global_best_position: array
         :param swarm_fitnesses: 1d array of floats with size n_particles containing the
-        :return: whether or not the best p% of particles is within n euclidean distance of
-            the global best position
+        :return: whether or not the best p% of particles is within n euclidean distance
+            of the global best position
         :rtype: bool
         """
 
