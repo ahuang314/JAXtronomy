@@ -46,6 +46,9 @@ class TestPSOJIT(object):
         final_result, _ = self.pso.optimize(max_iter=200)
         npt.assert_array_almost_equal(final_result, [0.6], decimal=5)
 
+        final_result, _ = self.pso.optimize(max_iter=200, early_stop_tolerance=1e-5)
+        npt.assert_array_almost_equal(final_result, [0.6], decimal=5)
+
 
 if __name__ == "__main__":
     pytest.main()
