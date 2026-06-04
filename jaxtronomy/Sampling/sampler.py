@@ -231,9 +231,7 @@ class Sampler(Sampler_lenstronomy):
                 n_run_eff = n_burn + n_run
                 backend.reset(n_walkers, num_param)
                 print(
-                    "Warning: backup file '{}' has been reset!".format(
-                        backend_filename
-                    )
+                    "Warning: backup file '{}' has been reset!".format(backend_filename)
                 )
         else:
             backend = None
@@ -241,7 +239,9 @@ class Sampler(Sampler_lenstronomy):
 
         time_start = time.time()
 
-        sampler = emcee.EnsembleSampler(n_walkers, num_param, logL_func, backend=backend, vectorize=True)
+        sampler = emcee.EnsembleSampler(
+            n_walkers, num_param, logL_func, backend=backend, vectorize=True
+        )
 
         sampler.run_mcmc(initpos, n_run_eff, progress=progress)
         flat_samples = sampler.get_chain(discard=n_burn, thin=1, flat=True)

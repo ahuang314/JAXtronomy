@@ -209,7 +209,7 @@ class TestSampler(object):
         )
         assert len(samples_3) == len(samples_1)
         assert len(dist_3) == len(samples_3)
-        os.remove(backend_filename)  # remove the backup file created above        
+        os.remove(backend_filename)  # remove the backup file created above
 
         # check that an error is raised when mpi is true
         npt.assert_raises(
