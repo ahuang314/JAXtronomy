@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 requires = [
     "lenstronomy==1.14.1",
-    "numpy>=2.0.0",
+    "numpy>=2.3.0",
     "jax>=0.10.0",
     "numpyro>=0.21.0",
     "optax>=0.2.5",
     "tqdm",
-    "scipy",
+    "scipy>=1.16",
     "dynesty",
     "zeus-mcmc",
     "cobaya",
