@@ -177,13 +177,9 @@ class Sampler(Sampler_lenstronomy):
             raise ValueError(
                 "mpi must be False in JAXtronomy, since parallelization is done through JAX"
             )
-        if start_from_backend:
-            raise ValueError("start_from_backend must be False in JAXtronomy")
-        if backend_filename is not None:
-            raise ValueError("backend_filename not supported in JAXtronomy")
 
-        backend = jax.default_backend()
-        if backend == "cpu":
+        device_backend = jax.default_backend()
+        if device_backend == "cpu":
             if threadCount > len(jax.devices()):
                 raise ValueError(
                     f"Supplied threadCount {threadCount} is greater than {len(jax.devices())}, the number of CPU devices detectable by JAX.\n"
@@ -201,7 +197,7 @@ class Sampler(Sampler_lenstronomy):
                 n_walkers = new_n_walkers
 
         logL_func = prepare_logL_func(
-            backend=backend,
+            backend=device_backend,
             logL_func=self.chain.logL,
             threadCount=threadCount,
             vectorization_batch_size=vectorization_batch_size,
@@ -219,11 +215,33 @@ class Sampler(Sampler_lenstronomy):
                 size=n_walkers,
             )
 
-        n_run_eff = n_burn + n_run
+        if backend_filename is not None:
+            backend = emcee.backends.HDFBackend(
+                backend_filename, name="lenstronomy_mcmc_emcee"
+            )
+            print(
+                "Warning: All samples (including burn-in) will be saved in backup file '{}'.".format(
+                    backend_filename
+                )
+            )
+            if start_from_backend:
+                initpos = None
+                n_run_eff = n_run
+            else:
+                n_run_eff = n_burn + n_run
+                backend.reset(n_walkers, num_param)
+                print(
+                    "Warning: backup file '{}' has been reset!".format(backend_filename)
+                )
+        else:
+            backend = None
+            n_run_eff = n_burn + n_run
 
         time_start = time.time()
 
-        sampler = emcee.EnsembleSampler(n_walkers, num_param, logL_func, vectorize=True)
+        sampler = emcee.EnsembleSampler(
+            n_walkers, num_param, logL_func, backend=backend, vectorize=True
+        )
 
         sampler.run_mcmc(initpos, n_run_eff, progress=progress)
         flat_samples = sampler.get_chain(discard=n_burn, thin=1, flat=True)
