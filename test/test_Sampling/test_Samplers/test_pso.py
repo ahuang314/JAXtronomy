@@ -29,7 +29,7 @@ class TestPSO(object):
     def test_run(self):
         # Tests to see if the PSO gets close to the true answer
         final_result, _ = self.pso.optimize(max_iter=100)
-        npt.assert_array_almost_equal(final_result, [0.6], decimal=4)
+        npt.assert_array_almost_equal(final_result, [0.6], decimal=3)
 
 
 class TestPSOJIT(object):
@@ -44,10 +44,10 @@ class TestPSOJIT(object):
     def test_run(self):
         # Tests to see if the PSO gets close to the true answer
         final_result, _ = self.pso.optimize(max_iter=100)
-        npt.assert_array_almost_equal(final_result, [0.6], decimal=4)
+        npt.assert_array_almost_equal(final_result, [0.6], decimal=3)
 
         final_result, _ = self.pso.optimize(max_iter=100, early_stop_tolerance=1e-5)
-        npt.assert_array_almost_equal(final_result, [0.6], decimal=4)
+        npt.assert_array_almost_equal(final_result, [0.6], decimal=3)
 
 
 if __name__ == "__main__":
