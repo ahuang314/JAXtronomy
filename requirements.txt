@@ -1,4 +1,4 @@
-lenstronomy @ https://github.com/lenstronomy/lenstronomy/archive/refs/heads/main.zip
+lenstronomy==1.14.1
 numpy>=2.3.0
 jax>=0.10.0
 numpyro>=0.21.0
