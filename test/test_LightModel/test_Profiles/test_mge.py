@@ -22,63 +22,88 @@ class TestMGESet(object):
     def test_function(self):
         x = np.array([1.0])
         y = np.array([2.0])
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.array([0.0])
         y = np.array([0.0])
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.linspace(-50, 50, 100)
         y = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
     def test_function_split(self):
         x = np.array([1.2345])
         y = np.array([2.2345123])
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.array([0.0])
         y = np.array([0.0])
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.linspace(-50, 50, 100)
         y = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
     def test_total_flux(self):
-        values_ref = self.profile_ref.total_flux(self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.total_flux(
+            self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.total_flux(self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
         npt.assert_array_almost_equal(np.sum(self.amp), values, decimal=12)
 
     def test_light_3d(self):
         r = np.array([2.0])
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         r = np.array([3.534])
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         r = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width
+        )
         values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width)
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
-
 
 
 class TestMGEEllipse(object):
@@ -94,61 +119,101 @@ class TestMGEEllipse(object):
     def test_function(self):
         x = np.array([1.0])
         y = np.array([2.0])
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.array([0.0])
         y = np.array([0.0])
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.linspace(-50, 50, 100)
         y = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
     def test_function_split(self):
         x = np.array([1.2345])
         y = np.array([2.2345123])
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.array([0.0])
         y = np.array([0.0])
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         x = np.linspace(-50, 50, 100)
         y = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.function_split(x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.function_split(
+            x, y, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
     def test_total_flux(self):
-        values_ref = self.profile_ref.total_flux(self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.total_flux(self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.total_flux(
+            self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.total_flux(
+            self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
         npt.assert_array_almost_equal(np.sum(self.amp), values, decimal=12)
 
     def test_light_3d(self):
         r = np.array([2.0])
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         r = np.array([3.534])
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
         r = np.linspace(-50, 50, 100)
-        values_ref = self.profile_ref.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
-        values = self.profile.light_3d(r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2)
+        values_ref = self.profile_ref.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
+        values = self.profile.light_3d(
+            r, self.amp, self.sigma_min, self.sigma_width, self.e1, self.e2
+        )
         npt.assert_array_almost_equal(values_ref, values, decimal=12)
 
 

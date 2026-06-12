@@ -79,7 +79,7 @@ class LinearBasis(LightModelBase):
                     new = {"amp": jnp.ones(num, dtype=float)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response = response.at[n: n + num].set(
+                    response = response.at[n : n + num].set(
                         self.func_list[i].function_split(x, y, **kwargs_new)
                     )
                     n += num

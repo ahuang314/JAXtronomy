@@ -296,13 +296,9 @@ class TNFW(LensProfileBase):
 
         x = jnp.maximum(x, TNFW._s)
         safe_value = jnp.sqrt(jnp.abs(1 - x**2))
-        result = jnp.where(
-            x > 1, jnp.arctan(safe_value) / safe_value, x
-        )
+        result = jnp.where(x > 1, jnp.arctan(safe_value) / safe_value, x)
         safe_value = jnp.where(x > 1, 0.5, safe_value)
-        result = jnp.where(
-            x < 1, jnp.arctanh(safe_value) / safe_value, result
-        )
+        result = jnp.where(x < 1, jnp.arctanh(safe_value) / safe_value, result)
         return result
 
     @staticmethod
