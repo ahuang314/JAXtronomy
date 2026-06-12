@@ -5,7 +5,6 @@ __author__ = "sibirrer"
 
 from functools import partial
 from jax import jit, lax, numpy as jnp
-import numpy as np
 from jaxtronomy.LightModel.light_model_base import LightModelBase
 
 __all__ = ["LinearBasis"]
@@ -68,10 +67,19 @@ class LinearBasis(LightModelBase):
                     n += 1
                 elif model in ["MULTI_GAUSSIAN", "MULTI_GAUSSIAN_ELLIPSE"]:
                     num = len(kwargs_list[i]["sigma"])
-                    new = {"amp": np.ones(num)}
+                    new = {"amp": jnp.ones(num)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
                     response = response.at[n : n + num].set(
+                        self.func_list[i].function_split(x, y, **kwargs_new)
+                    )
+                    n += num
+                elif model in ["MGE_SET", "MGE_SET_ELLIPSE"]:
+                    num = self.func_list[i].num_linear
+                    new = {"amp": jnp.ones(num, dtype=float)}
+                    kwargs_new = kwargs_list[i].copy()
+                    kwargs_new.update(new)
+                    response = response.at[n: n + num].set(
                         self.func_list[i].function_split(x, y, **kwargs_new)
                     )
                     n += num
@@ -81,14 +89,14 @@ class LinearBasis(LightModelBase):
                     "SHAPELETS_POLAR_EXP",
                     "SHAPELETS_ELLIPSE",
                 ]:
-                    num_param = self.func_list[i].num_param
-                    new = {"amp": np.ones(num_param)}
+                    num = self.func_list[i].num_param
+                    new = {"amp": jnp.ones(num, dtype=float)}
                     kwargs_new = kwargs_list[i].copy()
                     kwargs_new.update(new)
-                    response = response.at[n : n + num_param].set(
+                    response = response.at[n : n + num].set(
                         self.func_list[i].function_split(x, y, **kwargs_new)
                     )
-                    n += num_param
+                    n += num
                 # elif model in ["SLIT_STARLETS", "SLIT_STARLETS_GEN2"]:
                 #     raise ValueError(
                 #         "'{}' model does not support function split".format(model)
@@ -137,6 +145,12 @@ class LinearBasis(LightModelBase):
                     n += 1
             elif model in ["MULTI_GAUSSIAN", "MULTI_GAUSSIAN_ELLIPSE"]:
                 num = len(kwargs_list[i]["sigma"])
+                if list_return:
+                    n_list += [num]
+                else:
+                    n += num
+            elif model in ["MGE_SET", "MGE_SET_ELLIPSE"]:
+                num = self.func_list[i].num_linear
                 if list_return:
                     n_list += [num]
                 else:
@@ -216,6 +230,10 @@ class LinearBasis(LightModelBase):
                 num_param = len(kwargs_list[k]["sigma"])
                 kwargs_list[k]["amp"] = lax.dynamic_slice(param, [i], (num_param,))
                 i += num_param
+            elif model in ["MGE_SET", "MGE_SET_ELLIPSE"]:
+                num_param = self.func_list[k].num_linear
+                kwargs_list[k]["amp"] = lax.dynamic_slice(param, [i], (num_param,))
+                i += num_param
             elif model in [
                 "SHAPELETS",
                 "SHAPELETS_POLAR",
@@ -283,19 +301,25 @@ class LinearBasis(LightModelBase):
         for k, model in enumerate(self.profile_type_list):
             if "amp" in kwargs_list[k]:
                 if model in [
-                    "SERSIC",
-                    "SERSIC_ELLIPSE",
+                    "MULTI_GAUSSIAN",
+                    "MULTI_GAUSSIAN_ELLIPSE",
+                    "MGE_SET",
+                    "MGE_SET_ELLIPSE",
+                    "CHAMELEON",
                     "CORE_SERSIC",
-                    "HERNQUIST",
-                    "PJAFFE",
-                    "PJAFFE_ELLIPSE",
-                    "HERNQUIST_ELLIPSE",
+                    "DOUBLE_CHAMELEON",
                     "GAUSSIAN",
                     "GAUSSIAN_ELLIPSE",
-                    "POWER_LAW",
+                    "HERNQUIST",
+                    "HERNQUIST_ELLIPSE",
                     "NIE",
-                    "CHAMELEON",
-                    "DOUBLE_CHAMELEON",
+                    "PJAFFE",
+                    "PJAFFE_ELLIPSE",
+                    "PL_SERSIC",
+                    "POWER_LAW",
+                    "SERSIC",
+                    "SERSIC_ELLIPSE",
+                    "SERSIC_ELLIPSE_FLEXION",
                 ]:
                     pos_bool = jnp.where(kwargs_list[k]["amp"] < 0, False, pos_bool)
         return pos_bool
