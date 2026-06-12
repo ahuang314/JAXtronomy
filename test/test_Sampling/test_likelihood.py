@@ -427,7 +427,7 @@ class TestLikelihood(object):
             likelihood = ImageLikelihood(
                 kwargs_model=kwargs_model,
                 **self.kwargs_data_joint,
-                linear_solver=True,
+                linear_solver=False,
             )
 
             kwargs_source = lightModel.func_list[0].upper_limit_default
