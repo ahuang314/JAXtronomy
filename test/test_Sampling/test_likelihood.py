@@ -416,7 +416,9 @@ class TestLikelihood(object):
                 source_light_profile_kwargs_list = [{}]
 
             # this is just needed to get param names
-            lightModel = LightModel([source_profile], profile_kwargs_list=source_light_profile_kwargs_list)
+            lightModel = LightModel(
+                [source_profile], profile_kwargs_list=source_light_profile_kwargs_list
+            )
 
             kwargs_model = {
                 "lens_model_list": [],

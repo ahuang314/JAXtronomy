@@ -62,10 +62,14 @@ class TestLightModel(object):
 
     def test_import_profiles(self):
         profile_kwargs_list = [{} for _ in range(len(_JAXXED_MODELS))]
-        MGE_indices = [_JAXXED_MODELS.index(model) for model in ["MGE_SET", "MGE_SET_ELLIPSE"]]
+        MGE_indices = [
+            _JAXXED_MODELS.index(model) for model in ["MGE_SET", "MGE_SET_ELLIPSE"]
+        ]
         for index in MGE_indices:
             profile_kwargs_list[index] = {"n_comp": 5}
-        lightModel = LightModel(light_model_list=_JAXXED_MODELS, profile_kwargs_list=profile_kwargs_list)
+        lightModel = LightModel(
+            light_model_list=_JAXXED_MODELS, profile_kwargs_list=profile_kwargs_list
+        )
 
     def test_check_parameters(self):
         lightModel = LightModel(light_model_list=["GAUSSIAN"])
