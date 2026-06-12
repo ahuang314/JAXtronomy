@@ -1,6 +1,6 @@
 __author__ = "sibirrer"
 
-from jax import numpy as jnp, grad, jit
+from jax import numpy as jnp, grad, jit, debug_nans
 import pytest
 import numpy as np
 import numpy.testing as npt
@@ -390,28 +390,33 @@ class TestLikelihood(object):
                 **self.kwargs_data_joint,
             )
 
-            kwargs_lens = lensModel.lens_model.func_list[0].lower_limit_default
+            kwargs_lens = lensModel.lens_model.func_list[0].upper_limit_default
             for key, val in kwargs_lens.items():
                 kwargs_lens[key] = float(val)
-            print(kwargs_lens)
+            print("input kwargs:", kwargs_lens)
 
-            # don't care about the return value, just check that this runs
-            test_autodiff = jit(grad(_logL, argnums=1), static_argnums=0)(
-                likelihood, [kwargs_lens], None
-            )
+            # check that everything is differentiable
+            with debug_nans(True):
+                test_autodiff = jit(grad(_logL, argnums=1), static_argnums=0)(
+                    likelihood, [kwargs_lens], None
+                )
+            assert not np.any(np.isnan(np.array(list(test_autodiff[0].values()))))
 
     def test_lightmodel_autodifferentiation(self):
         del self.kwargs_data_joint["ra_image_list"]
         del self.kwargs_data_joint["dec_image_list"]
         for source_profile in JAXXED_SOURCE_PROFILES:
             print(source_profile)
-            # this is just needed to get param names
-            lightModel = LightModel([source_profile])
 
             if source_profile == "SHAPELETS":
                 source_light_profile_kwargs_list = [{"n_max": 1}]
+            elif source_profile in ["MGE_SET", "MGE_SET_ELLIPSE"]:
+                source_light_profile_kwargs_list = [{"n_comp": 5}]
             else:
                 source_light_profile_kwargs_list = [{}]
+
+            # this is just needed to get param names
+            lightModel = LightModel([source_profile], profile_kwargs_list=source_light_profile_kwargs_list)
 
             kwargs_model = {
                 "lens_model_list": [],
@@ -425,22 +430,27 @@ class TestLikelihood(object):
                 linear_solver=True,
             )
 
-            kwargs_source = lightModel.func_list[0].lower_limit_default
+            kwargs_source = lightModel.func_list[0].upper_limit_default
             for key, val in kwargs_source.items():
                 if source_profile in [
                     "MULTI_GAUSSIAN",
                     "MULTI_GAUSSIAN_ELLIPSE",
+                    "MGE_SET",
+                    "MGE_SET_ELLIPSE",
                     "SHAPELETS",
                 ] and key in ["amp", "sigma"]:
                     kwargs_source[key] = [float(val)] * 3
                 else:
                     kwargs_source[key] = float(val)
-            print(kwargs_source)
 
-            # don't care about the return value, just check that this runs
-            test_autodiff = jit(grad(_logL, argnums=2), static_argnums=0)(
-                likelihood, None, [kwargs_source]
-            )
+            print("input kwargs:", kwargs_source)
+            # check that everything is differentiable
+            with debug_nans(True):
+                test_autodiff = jit(grad(_logL, argnums=2), static_argnums=0)(
+                    likelihood, None, [kwargs_source]
+                )
+            for value in list(test_autodiff[0].values()):
+                assert not np.any(np.isnan(np.array(value)))
 
 
 def _logL(imagelikelihood, kwargs_lens, kwargs_source):
