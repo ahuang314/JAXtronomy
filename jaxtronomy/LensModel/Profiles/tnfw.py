@@ -295,12 +295,10 @@ class TNFW(LensProfileBase):
         """
 
         x = jnp.maximum(x, TNFW._s)
-        result = jnp.where(
-            x < 1, (1 - x**2) ** -0.5 * jnp.arctanh((1 - x**2) ** 0.5), x
-        )
-        result = jnp.where(
-            x > 1, (x**2 - 1) ** -0.5 * jnp.arctan((x**2 - 1) ** 0.5), result
-        )
+        safe_value = jnp.sqrt(jnp.abs(1 - x**2))
+        result = jnp.where(x > 1, jnp.arctan(safe_value) / safe_value, x)
+        safe_value = jnp.where(x > 1, 0.5, safe_value)
+        result = jnp.where(x < 1, jnp.arctanh(safe_value) / safe_value, result)
         return result
 
     @staticmethod
@@ -352,8 +350,10 @@ class TNFW(LensProfileBase):
     @jit
     def _cos_function(x):
         out = jnp.ones_like(x)
-        out = jnp.where(x < 1, -jnp.arccosh(1 / x) ** 2, out)
-        out = jnp.where(x >= 1, jnp.arccos(1 / x) ** 2, out)
+        safe_value = jnp.where(x < 1, x, 1)
+        out = jnp.where(x < 1, -jnp.arccosh(1 / safe_value) ** 2, out)
+        safe_value = jnp.where(x >= 1, x, 1)
+        out = jnp.where(x >= 1, jnp.arccos(1 / safe_value) ** 2, out)
 
         return out
 
