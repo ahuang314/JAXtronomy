@@ -79,10 +79,8 @@ class Test_ImageNoise_without_noisemap(object):
 
 
 def test_big_endian_image_data():
-    """
-    FITS files store data in big-endian (>f8) byte order which JAX rejects 
-    unless it is converted to native byte order first.
-    """
+    """FITS files store data in big-endian (>f8) byte order which JAX rejects unless it
+    is converted to native byte order first."""
     num_pix = 10
     native = np.ones((num_pix, num_pix), dtype=np.float64)
     big_endian = native.astype(">f8")
