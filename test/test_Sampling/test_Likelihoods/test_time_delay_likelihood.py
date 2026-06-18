@@ -2,7 +2,9 @@ from jaxtronomy.Sampling.Likelihoods.time_delay_likelihood import TimeDelayLikel
 from jaxtronomy.LensModel.lens_model import LensModel
 from jaxtronomy.PointSource.point_source import PointSource
 
-from lenstronomy.Sampling.Likelihoods.time_delay_likelihood import TimeDelayLikelihood as TimeDelayLikelihood_ref
+from lenstronomy.Sampling.Likelihoods.time_delay_likelihood import (
+    TimeDelayLikelihood as TimeDelayLikelihood_ref,
+)
 from lenstronomy.LensModel.lens_model import LensModel as LensModel_ref
 from lenstronomy.PointSource.point_source import PointSource as PointSource_ref
 from lenstronomy.LensModel.Solver.lens_equation_solver import LensEquationSolver
@@ -55,8 +57,8 @@ class TestTimeDelayLikelihood(object):
                 "theta_E": 1.0,
                 "e1": 0.1,
                 "e2": 0.2,
-                "center_x": 0.,
-                "center_y": 0.,
+                "center_x": 0.0,
+                "center_y": 0.0,
             },
             {"gamma1": 0.05, "gamma2": -0.01},
         ]
@@ -76,11 +78,15 @@ class TestTimeDelayLikelihood(object):
         )
         self.point_source_list = ["LENSED_POSITION"]
         self.kwargs_ps = [{"ra_image": self.x_img, "dec_image": self.y_img}]
-        self.pointSource_ref = PointSource_ref(point_source_type_list=self.point_source_list)
+        self.pointSource_ref = PointSource_ref(
+            point_source_type_list=self.point_source_list
+        )
         self.pointSource = PointSource(point_source_type_list=self.point_source_list)
 
     def test_logL(self):
-        t_days = self.lensModel_ref.arrival_time(self.x_img, self.y_img, self.kwargs_lens)
+        t_days = self.lensModel_ref.arrival_time(
+            self.x_img, self.y_img, self.kwargs_lens
+        )
         time_delays_measured = t_days[1:] - t_days[0]
         time_delays_uncertainties = np.array([0.1, 0.1, 0.1])
         kwargs_cosmo = {"D_dt": self.lensCosmo.ddt}
@@ -229,19 +235,25 @@ class TestTimeDelayLikelihood(object):
             {"ra_image": self.x_img2, "dec_image": self.y_img2},
         ]
 
-        t_days = self.lensModel_ref.arrival_time(self.x_img, self.y_img, self.kwargs_lens)
+        t_days = self.lensModel_ref.arrival_time(
+            self.x_img, self.y_img, self.kwargs_lens
+        )
         time_delays_measured = t_days[1:] - t_days[0]
         time_delays_uncertainties = np.array([0.1, 0.1, 0.1])
         kwargs_cosmo = {"D_dt": self.lensCosmo.ddt}
-        pointSource2 = PointSource(point_source_type_list=point_source_list2, redshift_list=[1.5, 1.6])
-        pointSource2_ref = PointSource_ref(point_source_type_list=point_source_list2, redshift_list=[1.5, 1.6])
+        pointSource2 = PointSource(
+            point_source_type_list=point_source_list2, redshift_list=[1.5, 1.6]
+        )
+        pointSource2_ref = PointSource_ref(
+            point_source_type_list=point_source_list2, redshift_list=[1.5, 1.6]
+        )
 
         t2_days = self.lensModel_ref.arrival_time(
             self.x_img2, self.y_img2, self.kwargs_lens
         )
         time_delays_measured2 = t2_days[1:] - t2_days[0]
         time_delays_uncertainties2 = np.array([0.1, 0.1, 0.1])
-        
+
         td_likelihood = TimeDelayLikelihood(
             [time_delays_measured, time_delays_measured2],
             [time_delays_uncertainties, time_delays_uncertainties2],
@@ -436,9 +448,7 @@ class TestTimeDelayLikelihood(object):
     def test_multiplane(self):
         z_lens = 0.7
         z_source = 2
-        lensCosmo = LensCosmo(
-            cosmo=self.cosmo, z_lens=z_lens, z_source=z_source
-        )
+        lensCosmo = LensCosmo(cosmo=self.cosmo, z_lens=z_lens, z_source=z_source)
         kwargs_cosmo = {"D_dt": lensCosmo.ddt}
         lensModel_mp = LensModel_ref(
             lens_model_list=["SIE", "SIE"],
@@ -485,7 +495,6 @@ class TestTimeDelayLikelihood(object):
         t_days = lensModel_mp.arrival_time(x_img_mp, y_img_mp, kwargs_lens_mp)
         time_delays_measured = t_days[1:] - t_days[0]
         time_delays_uncertainties = np.array([0.1, 0.1, 0.1, 0.1])
-
 
         td_likelihood = TimeDelayLikelihood(
             time_delays_measured,

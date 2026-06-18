@@ -18,8 +18,8 @@ class PointSource(object):
         additional_images_list=None,
         flux_from_point_source_list=None,
         magnification_limit=None,
-        save_cache=False, # Deprecated in JAXtronomy
-        kwargs_lens_eqn_solver=None, # Currently unused in JAXtronomy
+        save_cache=False,  # Deprecated in JAXtronomy
+        kwargs_lens_eqn_solver=None,  # Currently unused in JAXtronomy
         index_lens_model_list=None,
         point_source_frame_list=None,
         redshift_list=None,

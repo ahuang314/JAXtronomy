@@ -9,7 +9,9 @@ __all__ = ["TimeDelayLikelihood"]
 
 class TimeDelayLikelihood(object):
     """Class to compute the likelihood of a model given a measurement of time delays.
-    Cosmology sampling is not supported."""
+
+    Cosmology sampling is not supported.
+    """
 
     def __init__(
         self,
@@ -50,7 +52,7 @@ class TimeDelayLikelihood(object):
         # here we re-initialize the point source class with the lens model class
         # which takes care of the different point source redshifts at initialization
         init_kwargs = point_source_class._init_kwargs
-        init_kwargs['lens_model'] = lens_model_class
+        init_kwargs["lens_model"] = lens_model_class
         point_source_class = PointSource(**init_kwargs)
         self._pointSource = point_source_class
 
@@ -147,11 +149,14 @@ class TimeDelayLikelihood(object):
             mask = np.array(self._measurement_bool_list[i])
             if np.any(mask):
                 x_pos_, y_pos_ = x_pos[i], y_pos[i]
-                delay_arcsec = self._pointSource._point_source_list[i]._lens_model.fermat_potential(
-                    x_pos_, y_pos_, kwargs_lens
-                )
+                delay_arcsec = self._pointSource._point_source_list[
+                    i
+                ]._lens_model.fermat_potential(x_pos_, y_pos_, kwargs_lens)
                 D_dt_model = kwargs_cosmo["D_dt"]
-                Ddt_scaled = self._pointSource._point_source_list[i]._lens_model.ddt_scaling * D_dt_model
+                Ddt_scaled = (
+                    self._pointSource._point_source_list[i]._lens_model.ddt_scaling
+                    * D_dt_model
+                )
                 delay_days = const.delay_arcsec2days(delay_arcsec, Ddt_scaled)
                 delay_days *= lambda_mst
                 if self._bimodal_measurement:
@@ -219,9 +224,7 @@ class TimeDelayLikelihood(object):
             )
         elif delays_errors.ndim == 2:
             D = delta_t_model - delays_measured
-            logL = (
-                -1 / 2 * D @ jnp.linalg.inv(delays_errors) @ D
-            )
+            logL = -1 / 2 * D @ jnp.linalg.inv(delays_errors) @ D
         else:
             raise ValueError(
                 "Dimension of time delay error needs to be either one- or two-dimensional, not %s"

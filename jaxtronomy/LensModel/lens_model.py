@@ -611,7 +611,6 @@ class LensModel(object):
         """Ratio of time-delay distance between the source redshift and the time-delay
         distance to the z_source_convention.
 
-
         :return:
         """
         return self._ddt_scaling
