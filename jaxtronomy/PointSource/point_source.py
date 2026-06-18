@@ -112,6 +112,7 @@ class PointSource(object):
             kwargs_lens_eqn_solver = {}
         self._kwargs_lens_eqn_solver = kwargs_lens_eqn_solver
         self._magnification_limit = magnification_limit
+        self._save_cache = save_cache
 
         self._init_kwargs = {
             "point_source_type_list": point_source_type_list,
