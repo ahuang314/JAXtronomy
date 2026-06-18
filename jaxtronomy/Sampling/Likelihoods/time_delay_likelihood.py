@@ -45,12 +45,15 @@ class TimeDelayLikelihood(object):
             )
 
         self._lensModel = lens_model_class
-        if point_source_class._lens_model is None:
-            init_kwargs = point_source_class._init_kwargs
-            init_kwargs['lens_model'] = lens_model_class
-            point_source_class = PointSource(**init_kwargs)
 
+        # since updating source redshifts is not allowed during runtime in JAXtronomy,
+        # here we re-initialize the point source class with the lens model class
+        # which takes care of the different point source redshifts at initialization
+        init_kwargs = point_source_class._init_kwargs
+        init_kwargs['lens_model'] = lens_model_class
+        point_source_class = PointSource(**init_kwargs)
         self._pointSource = point_source_class
+
         self._num_point_sources = len(self._pointSource.point_source_type_list)
         self._bimodal_measurement = bimodal_measurement
         if bimodal_measurement and self._num_point_sources > 1:
