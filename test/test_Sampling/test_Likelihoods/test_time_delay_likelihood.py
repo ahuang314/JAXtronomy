@@ -140,6 +140,7 @@ class TestTimeDelayLikelihood(object):
             kwargs_cosmo=kwargs_cosmo,
         )
         npt.assert_almost_equal(logL, logL_ref, decimal=12)
+        assert td_likelihood.num_data == td_likelihood_ref.num_data
 
         # Test a covariance matrix being used
         time_delays_cov = np.diag([0.1, 0.1, 0.1]) ** 2
@@ -222,6 +223,65 @@ class TestTimeDelayLikelihood(object):
             kwargs_cosmo=kwargs_cosmo,
         )
         npt.assert_almost_equal(logL, logL_ref, decimal=12)
+        assert td_likelihood.num_data == td_likelihood_ref.num_data
+
+        with pytest.raises(ValueError):
+            # measured delays can't be none
+            td_likelihood = TimeDelayLikelihood(
+                None,
+                time_delays_uncertainties,
+                lens_model_class=self.lensModel,
+                point_source_class=self.pointSource,
+            )
+        with pytest.raises(ValueError):
+            # measured delay uncertainties can't be none
+            td_likelihood = TimeDelayLikelihood(
+                time_delays_measured,
+                None,
+                lens_model_class=self.lensModel,
+                point_source_class=self.pointSource,
+            )
+
+    def test_logL_delays(self):
+        t_days = self.lensModel_ref.arrival_time(
+            self.x_img, self.y_img, self.kwargs_lens
+        )
+        time_delays_measured = t_days[1:] - t_days[0]
+        time_delays_uncertainties = np.array([0.1, 0.1, 0.1])
+
+        td_likelihood = TimeDelayLikelihood(
+            time_delays_measured,
+            time_delays_uncertainties,
+            lens_model_class=self.lensModel,
+            point_source_class=self.pointSource,
+        )
+
+        td_likelihood_ref = TimeDelayLikelihood_ref(
+            time_delays_measured,
+            time_delays_uncertainties,
+            lens_model_class=self.lensModel,
+            point_source_class=self.pointSource,
+        )
+        
+        logL = td_likelihood._logL_delays(
+            [0, 1, 2],
+            [0, 1, 2],
+            [0.1, 0.1, 0.1]
+        )
+        logL_ref = td_likelihood_ref._logL_delays(
+            [0, 1, 2],
+            [0, 1, 2],
+            [0.1, 0.1, 0.1]
+        )
+        assert logL == logL_ref == -(10**15)
+
+        with pytest.raises(ValueError):
+            # delay errors have unsupported shape
+            logL = td_likelihood._logL_delays(
+                [0, 1, 2],
+                [1, 2],
+                np.ones((2, 2, 2))
+            )
 
     def test_two_point_sources(self):
         """Tests for looping through two point sources with time delays.
