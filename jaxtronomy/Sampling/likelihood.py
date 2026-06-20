@@ -126,11 +126,7 @@ class Likelihood(object):
         :param tracer_likelihood: option to perform likelihood on tracer quantity
             derived from imaging or spectroscopy
         """
-        if (
-            tracer_likelihood
-            or flux_ratio_likelihood
-            or kinematic_2d_likelihood
-        ):
+        if tracer_likelihood or flux_ratio_likelihood or kinematic_2d_likelihood:
             raise ValueError(
                 "tracer, flux_ratio, and kinematic_2d likelihoods are not currently supported and should be set to False."
             )
@@ -433,9 +429,9 @@ class Likelihood(object):
         num_data += self._position_likelihood.num_data
 
         # Not implemented yet
-        #if self._flux_ratio_likelihood is True:
+        # if self._flux_ratio_likelihood is True:
         #    num_data += self.flux_ratio_likelihood.num_data
-        #if self._tracer_likelihood is True:
+        # if self._tracer_likelihood is True:
         #    num_data += self.tracer_likelihood.num_data
         return num_data
 
