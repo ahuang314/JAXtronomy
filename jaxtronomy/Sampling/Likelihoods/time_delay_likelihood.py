@@ -177,10 +177,11 @@ class TimeDelayLikelihood(object):
     def _log_delay_masked(self, delay_days, mask, i):
         """
 
-        :param delay_days:
-        :param mask:
-        :param i:
-        :return:
+        :param delay_days: delay days of the model corresponding to point source i, relative to the first image
+        :param mask: array of bools corresponding to which images in point source i are included in the
+            computation
+        :param i: index of the point source list
+        :return: log likelihood
         """
         logL = 0
         mask_full = np.concatenate(([True], mask))  # add the first image to the mask
