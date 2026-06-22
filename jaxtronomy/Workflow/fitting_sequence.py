@@ -540,9 +540,10 @@ class FittingSequence(object):
         :param threadCount: number of CPU threads. If MPI option is set, threadCount=1
         :param rng_seed: int, seed used for randomness in PSO. If None, a random seed is
             generated.
-        :param vectorization_batch_size: int, only relevant for GPU, determines the number of
-            particles/walkers whose logL will be computed simultaneously. None defaults to one
-            particle at a time and 0 means to compute all particles/walkers simultaneously.
+        :param vectorization_batch_size: int, only relevant for GPU, determines the
+            number of particles/walkers whose logL will be computed simultaneously. None
+            defaults to one particle at a time and 0 means to compute all
+            particles/walkers simultaneously.
         :return: result of the best fit, the PSO chain of the best fit parameter after
             each iteration [lnlikelihood, parameters, velocities], list of parameters in
             same order as in chain
