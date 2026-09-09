@@ -283,17 +283,30 @@ class TestLikelihood(object):
         penalty, bound_hit = self.Likelihood.check_bounds(
             args=[0, 1], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
         )
-        assert bound_hit
+        penalty_ref, bound_hit_ref = self.Likelihood_ref.check_bounds(
+            args=[0, 1], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
+        )
+        assert bound_hit == bound_hit_ref
+        npt.assert_allclose(penalty, penalty_ref, atol=1e-8, rtol=1e-8)
 
         penalty, bound_hit = self.Likelihood.check_bounds(
             args=[1, 3], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
         )
-        assert bound_hit
+        penalty_ref, bound_hit_ref = self.Likelihood_ref.check_bounds(
+            args=[1, 3], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
+        )
+        assert bound_hit == bound_hit_ref
+        npt.assert_allclose(penalty, penalty_ref, atol=1e-8, rtol=1e-8)
 
         penalty, bound_hit = self.Likelihood.check_bounds(
             args=[1, 2], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
         )
+        penalty_ref, bound_hit_ref = self.Likelihood_ref.check_bounds(
+            args=[1, 2], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
+        )
         assert not bound_hit
+        assert bound_hit == bound_hit_ref
+        npt.assert_allclose(penalty, penalty_ref, atol=1e-8, rtol=1e-8)
 
         # Test check_bounds = False
         args = self.param_class.kwargs2args(
@@ -322,7 +335,7 @@ class TestLikelihood(object):
             likelihood_ref.logL(args, verbose=True),
             rtol=1e-6,
         )
-        assert likelihood.logL(args) != -1e18
+        assert likelihood.logL(args) > -1e18
 
         # Test check_bounds = True
         likelihood = Likelihood(
@@ -337,7 +350,6 @@ class TestLikelihood(object):
             param_class=self.param_class,
             check_bounds=True,
         )
-        npt.assert_allclose(likelihood.logL(args), -1e18)
         npt.assert_allclose(likelihood.logL(args), likelihood_ref.logL(args))
 
     def test_kwargs_imaging(self):

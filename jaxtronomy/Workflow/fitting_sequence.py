@@ -723,6 +723,11 @@ class FittingSequence(object):
         likelihood_mask_list = kwargs_likelihood.get("image_likelihood_mask_list", None)
         kwargs_pixelbased = kwargs_likelihood.get("kwargs_pixelbased", None)
         kwargs_temp = self.best_fit(bijective=False)
+
+        # Since psf_iteration happens through lenstronomy, we have to convert
+        # all JAX arrays stored on GPU into numpy arrays stored on cpu
+        kwargs_temp_cpu = jax.tree.map(jax.device_get, kwargs_temp)
+
         if compute_bands is None:
             compute_bands = [True] * len(self.multi_band_list)
 
@@ -738,8 +743,9 @@ class FittingSequence(object):
                     kwargs_pixelbased=kwargs_pixelbased,
                 )
                 psf_iter = PsfFitting(image_model_class=image_model)
+
                 kwargs_psf = psf_iter.update_iterative(
-                    kwargs_psf, kwargs_params=kwargs_temp, **kwargs_psf_iter
+                    kwargs_psf, kwargs_params=kwargs_temp_cpu, **kwargs_psf_iter
                 )
                 self.multi_band_list[band_index][1] = kwargs_psf
                 self._psf_iteration_memory.append(
