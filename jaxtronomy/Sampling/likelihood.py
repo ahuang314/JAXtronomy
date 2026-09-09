@@ -313,7 +313,7 @@ class Likelihood(object):
             )
 
             def true_fun(*args, **kwargs):
-                return -(10.0**18)
+                return -(10.0**18) - penalty
 
             logL = lax.cond(bound_hit, true_fun, self.log_likelihood, kwargs_return)
         else:
@@ -384,24 +384,33 @@ class Likelihood(object):
     @staticmethod
     @partial(jit, static_argnums=3)
     def check_bounds(args, lowerLimit, upperLimit, verbose=False):
-        """Checks whether the parameter vector has left its bound, if so, adds a big
-        number."""
+        """Checks whether the parameter vector has left its bound.
+
+        If so, returns a penalty that grows with the (bound-range-normalized) distance
+        past the violated bound(s), summed over all violated parameters.
+        """
         args = jnp.atleast_1d(jnp.array(args))
         lowerLimit = jnp.atleast_1d(jnp.array(lowerLimit))
         upperLimit = jnp.atleast_1d(jnp.array(upperLimit))
 
-        bound_hit_array = jnp.where(
-            args < lowerLimit, True, jnp.where(args > upperLimit, True, False)
-        )
+        penalty = jnp.zeros(len(args), dtype=float)
+        lower_bound_hit_array = args < lowerLimit
+        upper_bound_hit_array = args > upperLimit
+        range = (upperLimit - lowerLimit) / 100
+
+        penalty = jnp.where(lower_bound_hit_array, ((lowerLimit - args) / range)**2, penalty)
+        penalty = jnp.where(upper_bound_hit_array, ((upperLimit - args) / range)**2, penalty)
+        penalty = jnp.sum(penalty)
+
+        bound_hit_array = lower_bound_hit_array | upper_bound_hit_array
         bound_hit = jnp.any(bound_hit_array)
-        penalty = jnp.where(bound_hit, 10.0**5, 0.0)
 
         if verbose is True:
 
             def true_fun():
                 i = jnp.nonzero(bound_hit_array, size=1)[0][0]
                 jax.debug.print(
-                    "parameter args[{}] with value {} hit the bounds [{}, {}] ",
+                    "parameter arg[{}] with value {} hit the bounds [{}, {}] ",
                     i,
                     args[i],
                     lowerLimit[i],
