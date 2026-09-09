@@ -414,7 +414,7 @@ class Likelihood(object):
             def true_fun():
                 i = jnp.nonzero(bound_hit_array, size=1)[0][0]
                 jax.debug.print(
-                    "parameter arg[{}] with value {} hit the bounds [{}, {}] ",
+                    "parameter args[{}] with value {} hit the bounds [{}, {}] ",
                     i,
                     args[i],
                     lowerLimit[i],
