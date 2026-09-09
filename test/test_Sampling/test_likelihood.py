@@ -289,7 +289,6 @@ class TestLikelihood(object):
         assert bound_hit == bound_hit_ref
         npt.assert_allclose(penalty, penalty_ref, atol=1e-8, rtol=1e-8)
 
-
         penalty, bound_hit = self.Likelihood.check_bounds(
             args=[1, 3], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True
         )
@@ -298,7 +297,6 @@ class TestLikelihood(object):
         )
         assert bound_hit == bound_hit_ref
         npt.assert_allclose(penalty, penalty_ref, atol=1e-8, rtol=1e-8)
-
 
         penalty, bound_hit = self.Likelihood.check_bounds(
             args=[1, 2], lowerLimit=[1, 0], upperLimit=[2, 2], verbose=True

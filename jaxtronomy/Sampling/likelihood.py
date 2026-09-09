@@ -398,8 +398,12 @@ class Likelihood(object):
         upper_bound_hit_array = args > upperLimit
         range = (upperLimit - lowerLimit) / 100
 
-        penalty = jnp.where(lower_bound_hit_array, ((lowerLimit - args) / range)**2, penalty)
-        penalty = jnp.where(upper_bound_hit_array, ((upperLimit - args) / range)**2, penalty)
+        penalty = jnp.where(
+            lower_bound_hit_array, ((lowerLimit - args) / range) ** 2, penalty
+        )
+        penalty = jnp.where(
+            upper_bound_hit_array, ((upperLimit - args) / range) ** 2, penalty
+        )
         penalty = jnp.sum(penalty)
 
         bound_hit_array = lower_bound_hit_array | upper_bound_hit_array
