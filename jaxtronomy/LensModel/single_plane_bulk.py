@@ -1,7 +1,7 @@
-__author__ = "sibirrer"
-
 from jax import jit, lax, numpy as jnp
-from jaxtronomy.LensModel.profile_list_base import ProfileListBase, _select_kwargs
+from jaxtronomy.LensModel.profile_list_base import ProfileListBase
+from jaxtronomy.LensModel.Util import lens_model_bulk_util as bulk_util
+
 from functools import partial
 import numpy as np
 
@@ -39,7 +39,7 @@ class SinglePlaneBulk(ProfileListBase):
         )
 
         self._derivatives_list = [
-            _select_kwargs(self.func_list[i], self.param_name_list[i])
+            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
             for i in range(len(self.func_list))
         ]
 
@@ -127,5 +127,114 @@ class SinglePlaneBulk(ProfileListBase):
             return lax.switch(index, self._derivatives_list, x, y, all_kwargs)
 
         f_x, f_y = lax.map(body_fun, xs=(all_kwargs, index_list))
+
+        return x - jnp.sum(f_x, axis=0), y - jnp.sum(f_y, axis=0)
+
+
+class SinglePlaneBulkStatic(ProfileListBase):
+    """This class should be used whenever the number of profile components exceeds
+    300, making the usual LensModel class unusable due to exploding compile times.
+
+    The API for this class follows lenstronomy's LensModel more closely than the
+    SinglePlaneBulk class defined above. This class is intended to be used for image
+    simulation only. Lens modeling with this class is not supported since auto-
+    differentiation and top-level jitting are not supported.
+    """
+
+    def __init__(
+        self,
+        lens_model_list,
+        profile_kwargs_list=None,
+    ):
+        """
+        :param lens_model_list: list of strings with lens model names
+        :param profile_kwargs_list: list of dictionaries, keyword arguments used to intiialize different lens model profiles
+        """
+        if profile_kwargs_list is None:
+            profile_kwargs_list = [{}] * len(lens_model_list)
+            
+        (
+            unique_lens_model_list,
+            unique_profile_kwargs_list,
+            index_list,
+        ) = bulk_util.create_unique_lens_model_list(lens_model_list, profile_kwargs_list)
+
+        self.index_list = jnp.array(index_list, dtype=int)
+
+        ProfileListBase.__init__(
+            self,
+            unique_lens_model_list,
+            unique_profile_kwargs_list,
+            lens_redshift_list=None,
+            z_source_convention=None,
+        )
+
+        # Creates a set of all unique parameter names from all models
+        self.unique_kwargs = set(
+            param for sublist in self.param_name_list for param in sublist
+        )
+
+        # list of functions to use with jax.lax.switch
+        self._derivatives_list = [
+            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
+            for i in range(len(self.func_list))
+        ]
+
+    # This function needs to be called outside of JIT (nested for-loops -> exploding compile times)
+    def convert_lenstronomy_to_jax_kwargs(self, kwargs_lens):
+        """This is a helper functon used to convert kwargs_lens from the typical lenstronomy
+        convention to a format that is compatible with JAX scan.
+
+        :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
+            model in the same order of the lens_model_list (same as in lenstronomy)
+        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all parameters
+            for all lens models
+        """
+        all_kwargs = {}
+        for kwarg in self.unique_kwargs:
+            all_kwargs[kwarg] = []
+            for kwargs_profile in kwargs_lens:
+                value = kwargs_profile.get(kwarg, 0)
+                all_kwargs[kwarg].append(value)
+
+            all_kwargs[kwarg] = jnp.array(all_kwargs[kwarg], dtype=float)
+
+        return all_kwargs
+
+    # This function cannot be jitted
+    def ray_shooting(self, x, y, kwargs_lens, k=None):
+        """Maps image to source position (inverse deflection)
+
+        :param x: x-position (preferentially arcsec)
+        :param y: y-position (preferentially arcsec)
+        :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
+            model in the same order of the lens_model_list (same as in lenstronomy)
+        :return: source plane positions corresponding to (x, y) in the image plane
+        """
+        if k is not None:
+            raise ValueError("Selecting certain lens models with the `k` argment is not supported with bulk lensing")
+        all_kwargs = self.convert_lenstronomy_to_jax_kwargs(kwargs_lens)
+        return self._ray_shooting(x, y, all_kwargs)
+
+    @partial(jit, static_argnums=0)
+    def _ray_shooting(self, x, y, all_kwargs):
+        """This function computes the ray tracing through all of the lens models given
+        by index_list. The arguments all_kwargs and index_list should be obtained by
+        calling SinglePlaneBulkStatic.convert_lenstronomy_to_jax_kwargs().
+
+        :param x: x-position (preferentially arcsec)
+        :param y: y-position (preferentially arcsec)
+        :param all_kwargs: dictionary of JAX or numpy arrays, containing all parameters
+            for all lens models
+        """
+        x = jnp.asarray(x, dtype=float)
+        y = jnp.asarray(y, dtype=float)
+
+        # This function is called iteratively by jax.lax.map to compute deflection angles for each deflector
+        def body_fun(xs):
+            all_kwargs, index = xs[0], xs[1]
+            return lax.switch(index, self._derivatives_list, x, y, all_kwargs)
+
+        f_x, f_y = lax.map(body_fun, xs=(all_kwargs, self.index_list))
 
         return x - jnp.sum(f_x, axis=0), y - jnp.sum(f_y, axis=0)

@@ -1,4 +1,5 @@
-from jaxtronomy.LensModel.profile_list_base import ProfileListBase, _select_kwargs
+from jaxtronomy.LensModel.profile_list_base import ProfileListBase
+from jaxtronomy.LensModel.Util import lens_model_bulk_util as bulk_util
 from lenstronomy.Cosmo.background import Background
 from lenstronomy.Util.cosmo_util import get_astropy_cosmology
 
@@ -43,7 +44,7 @@ class MultiPlaneBulk(ProfileListBase):
         )
 
         self._derivatives_list = [
-            _select_kwargs(self.func_list[i], self.param_name_list[i])
+            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
             for i in range(len(self.func_list))
         ]
 
@@ -96,8 +97,8 @@ class MultiPlaneBulk(ProfileListBase):
                 f"The provided num_deflectors {num_deflectors} is smaller than the length of lens_model_list {len(lens_model_list)}"
             )
 
-        lens_model_list, lens_redshift_list, kwargs_lens = self._sort_lists_by_redshift(
-            lens_model_list, lens_redshift_list, kwargs_lens
+        lens_redshift_list, lens_model_list, kwargs_lens = _sort_lists_by_redshift(
+            lens_redshift_list, lens_model_list, kwargs_lens
         )
 
         # Converts lens_model_list from typical lenstronomy convention to a list of indices, required for jax.lax.scan
@@ -127,7 +128,7 @@ class MultiPlaneBulk(ProfileListBase):
             all_kwargs[kwarg] = np.array(all_kwargs[kwarg])
 
         # Compute transverse comoving distances with the source included
-        T_ij_list, T_z_list, reduced2physical_factor = self._set_T_zs_and_T_ijs(
+        T_ij_list, T_z_list, reduced2physical_factor = _set_T_zs_and_T_ijs(
             lens_redshift_list, z_source, self._cosmo_bkg
         )
 
@@ -209,64 +210,239 @@ class MultiPlaneBulk(ProfileListBase):
         beta_y = y / T_z_list[-1]
         return beta_x, beta_y
 
-    # This function is called outside of jit
-    @staticmethod
-    def _sort_lists_by_redshift(lens_model_list, lens_redshift_list, kwargs_lens):
-        """Sorts the lens model list, lens redshift list, and kwargs_lens by increasing
-        redshift.
 
-        :param lens_model_list: list of lens models in the usual lenstronomy convention
-        :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
-            model in the same order of the lens_model_list (same as in lenstronomy)
-        :param lens_redshift_list: list of redshifts for each deflector
-        :returns: same as the inputs but sorted by increasing redshift
+class MultiPlaneBulkStatic(ProfileListBase):
+    """This class should be used whenever the number of profile components exceeds
+    300, making the usual LensModel class unusable due to exploding compile times.
+
+    The API for this class follows lenstronomy's LensModel more closely than the
+    MultiPlaneBulk class defined above. This class is intended to be used for image
+    simulation only. Lens modeling with this class is not supported since auto-
+    differentiation and top-level jitting are not supported.
+    """
+
+    def __init__(
+        self,
+        z_source,
+        lens_model_list,
+        lens_redshift_list,
+        cosmo=None,
+        profile_kwargs_list=None,
+        cosmology_model="FlatLambdaCDM",
+    ):
+        """
+        :param z_source: source redshift for default computation of reduced lensing quantities
+        :param lens_model_list: list of strings with lens model names
+        :param lens_redshift_list: list of deflector redshift (corresponding to the lens model list),
+            only applicable in multi_plane mode.
+        :param cosmo: instance of astropy cosmology. If None, an instance will be created based off of cosmology_model
+        :param profile_kwargs_list: list of dictionaries, keyword arguments used to intiialize different lens model profiles
+        :param cosmology_model: string, used to initialize an instance of astropy cosmology if one was not already provided
         """
 
-        lens_redshift_list = np.array(lens_redshift_list)
-        sorted_indices = np.argsort(lens_redshift_list)
+        if profile_kwargs_list is None:
+            profile_kwargs_list = [{}] * len(lens_model_list)
 
-        lens_model_list = [lens_model_list[index] for index in sorted_indices]
-        lens_redshift_list = lens_redshift_list[sorted_indices]
-        kwargs_lens = [kwargs_lens[index] for index in sorted_indices]
-
-        return lens_model_list, lens_redshift_list, kwargs_lens
-
-    # This function is called outside of jit
-    @staticmethod
-    def _set_T_zs_and_T_ijs(lens_redshift_list, z_source, cosmo_bkg):
-        """Set the transverse comoving distances between the observer and the lens
-        planes and between the lens planes.
-
-        :param lens_redshift_list: a SORTED np.array of redshifts
-        :param z_source: float, redshift of source
-        :cosmo_bkg: instance of lenstronomy.Cosmo.background.Background class
-
-        Returns:
-            T_ij_list: list of transverse comoving distances going from deflector i to deflector i+1,
-                also includes the distance between the last deflector and z_source.
-            T_z_list: list of transverse comoving distances between z=0 to each deflector and z_source.
-            reduced2physical_factor: list of conversion factors from reduced deflection angles to physical deflection angles.
-        """
-
-        # reduced2physical_factor calculation
-        z_source_array = np.ones(lens_redshift_list.shape) * z_source
-        reduced2physical_factor = cosmo_bkg.d_xy(0, z_source) / cosmo_bkg.d_xy(
-            lens_redshift_list, z_source_array
+        self.sorted_indices = np.argsort(lens_redshift_list)
+        lens_redshift_list, lens_model_list, profile_kwargs_list = _sort_lists_by_redshift(
+            lens_redshift_list, lens_model_list, profile_kwargs_list
         )
 
-        # Transverse comoving distance calculations
-        T_ij_list = []
-        T_z_list = []
-        z_before = 0
-        T_z = 0
-        for z in np.append(lens_redshift_list, z_source):
-            if z_before == z:
-                delta_T = 0
-            else:
-                T_z = cosmo_bkg.T_xy(0, z)
-                delta_T = cosmo_bkg.T_xy(z_before, z)
-            T_ij_list.append(delta_T)
-            T_z_list.append(T_z)
-            z_before = z
+        (
+            unique_lens_model_list,
+            unique_profile_kwargs_list,
+            index_list,
+        ) = bulk_util.create_unique_lens_model_list(lens_model_list, profile_kwargs_list)
 
-        return T_ij_list, T_z_list, reduced2physical_factor.tolist()
+        # The source will be included as a NULL deflector for the final ray-tracing step
+        ProfileListBase.__init__(
+            self,
+            unique_lens_model_list + ["NULL"],
+            unique_profile_kwargs_list + [{}],
+            lens_redshift_list=None,
+            z_source_convention=None,
+        )
+
+        # Creates a set of all unique parameter names from all models
+        self.unique_kwargs = set(
+            param for sublist in self.param_name_list for param in sublist
+        )
+
+        # list of functions to use with jax.lax.switch
+        self._derivatives_list = [
+            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
+            for i in range(len(self.func_list))
+        ]
+
+        if cosmo is None and cosmology_model == "FlatLambdaCDM":
+            cosmo = default_cosmology.get()
+        elif cosmo is None and cosmology_model != "FlatLambdaCDM":
+            cosmo = get_astropy_cosmology(cosmology_model=cosmology_model)
+        self._cosmo_bkg = Background(cosmo)
+
+        # Compute transverse comoving distances with the source included
+        T_ij_list, T_z_list, reduced2physical_factor = _set_T_zs_and_T_ijs(
+            lens_redshift_list, z_source, self._cosmo_bkg
+        )
+
+        self.z_source = z_source
+
+        index_list += [len(unique_lens_model_list)]
+        self.index_list = jnp.array(index_list, dtype=int)
+        self.T_ij_list = jnp.array(T_ij_list, dtype=float)
+        self.T_z_list = jnp.array(T_z_list, dtype=float)
+        reduced2physical_factor += [0]
+        self.reduced2physical_factor = jnp.array(reduced2physical_factor, dtype=float)
+
+
+    # This function needs to be called outside of JIT (nested for-loops -> exploding compile times)
+    def convert_lenstronomy_to_jax_kwargs(self, kwargs_lens):
+        """This is a helper functon used to convert kwargs_lens from the typical lenstronomy
+        convention to a format that is compatible with JAX scan.
+
+        :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
+            model in the same order of the lens_model_list (same as in lenstronomy)
+        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all parameters
+            for all lens models
+        """
+
+        all_kwargs = {}
+
+        kwargs_lens = [kwargs_lens[index] for index in self.sorted_indices]
+        for kwarg in self.unique_kwargs:
+            all_kwargs[kwarg] = []
+            for kwargs_profile in kwargs_lens:
+                value = kwargs_profile.get(kwarg, 0)
+                all_kwargs[kwarg].append(value)
+
+            all_kwargs[kwarg] += [0]
+            all_kwargs[kwarg] = jnp.array(all_kwargs[kwarg], dtype=float)
+
+        return all_kwargs
+
+    # This function cannot be jitted
+    def ray_shooting(self, x, y, kwargs_lens, k=None):
+        """Maps image to source position (inverse deflection)
+
+        :param x: x-position (preferentially arcsec)
+        :param y: y-position (preferentially arcsec)
+        :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
+            model in the same order of the lens_model_list (same as in lenstronomy)
+        :return: source plane positions corresponding to (x, y) in the image plane
+        """
+        if k is not None:
+            raise ValueError("Selecting certain lens models with the `k` argment is not supported with bulk lensing")
+        
+        all_kwargs = self.convert_lenstronomy_to_jax_kwargs(kwargs_lens)
+        return self._ray_shooting(x, y, all_kwargs)
+
+    @partial(jit, static_argnums=(0,))
+    def _ray_shooting(
+        self,
+        alpha_x,
+        alpha_y,
+        all_kwargs,
+    ):
+        """Ray-tracing (backwards light cone) from redshift z=0 to z=z_source.
+
+        :param alpha_x: ray angle at z_start=0 [arcsec]
+        :param alpha_y: ray angle at z_start=0 [arcsec]
+        :param all_kwargs: dictionary of JAX or numpy arrays, containing all parameters
+            for all lens models
+        :return: angles at the source plane
+        """
+        alpha_x = jnp.asarray(alpha_x, dtype=float)
+        alpha_y = jnp.asarray(alpha_y, dtype=float)
+        x = jnp.zeros_like(alpha_x)
+        y = jnp.zeros_like(alpha_y)
+
+        # This function is called iteratively by jax.lax.scan to ray trace through all deflectors
+        def body_fun(carry, xs):
+            alpha_x, alpha_y, x, y = carry[0], carry[1], carry[2], carry[3]
+            all_kwargs, index, delta_T, T_z, reduced2physical_factor = (
+                xs[0],
+                xs[1],
+                xs[2],
+                xs[3],
+                xs[4],
+            )
+            x += alpha_x * delta_T
+            y += alpha_y * delta_T
+            alpha_x_red, alpha_y_red = lax.switch(
+                index, self._derivatives_list, x / T_z, y / T_z, all_kwargs
+            )
+            alpha_x -= alpha_x_red * reduced2physical_factor
+            alpha_y -= alpha_y_red * reduced2physical_factor
+            return (alpha_x, alpha_y, x, y), 0
+
+        (alpha_x, alpha_y, x, y), _ = lax.scan(
+            body_fun,
+            init=(alpha_x, alpha_y, x, y),
+            xs=(all_kwargs, self.index_list, self.T_ij_list, self.T_z_list, self.reduced2physical_factor),
+        )
+
+        beta_x = x / self.T_z_list[-1]
+        beta_y = y / self.T_z_list[-1]
+        return beta_x, beta_y
+
+
+# This function is called outside of jit
+def _sort_lists_by_redshift(lens_redshift_list, *other_lists):
+    """Sorts the lens redshift list, and other lists in the order of increasing
+    redshift.
+
+    :param lens_redshift_list: list of redshifts for each deflector
+    :param other_lists: other lists to be sorted
+    :returns: same as the inputs but sorted by increasing redshift
+    """
+
+    lens_redshift_list = np.array(lens_redshift_list)
+    sorted_indices = np.argsort(lens_redshift_list)
+
+    lens_redshift_list = lens_redshift_list[sorted_indices]
+    sorted_other_lists = []
+    for list_i in other_lists:
+        list_i = [list_i[index] for index in sorted_indices]
+        sorted_other_lists.append(list_i)
+
+    return lens_redshift_list, *sorted_other_lists
+
+# This function is called outside of jit
+def _set_T_zs_and_T_ijs(lens_redshift_list, z_source, cosmo_bkg):
+    """Set the transverse comoving distances between the observer and the lens
+    planes and between the lens planes.
+
+    :param lens_redshift_list: a SORTED np.array of redshifts
+    :param z_source: float, redshift of source
+    :cosmo_bkg: instance of lenstronomy.Cosmo.background.Background class
+
+    Returns:
+        T_ij_list: list of transverse comoving distances going from deflector i to deflector i+1,
+            also includes the distance between the last deflector and z_source.
+        T_z_list: list of transverse comoving distances between z=0 to each deflector and z_source.
+        reduced2physical_factor: list of conversion factors from reduced deflection angles to physical deflection angles.
+    """
+    # reduced2physical_factor calculation
+    z_source_array = np.ones(lens_redshift_list.shape) * z_source
+    reduced2physical_factor = cosmo_bkg.d_xy(0, z_source) / cosmo_bkg.d_xy(
+        lens_redshift_list, z_source_array
+    )
+    # Transverse comoving distance calculations
+    T_ij_list = []
+    T_z_list = []
+    z_before = 0
+    T_z = 0
+
+    for z in np.append(lens_redshift_list, z_source):
+        if z_before == z:
+            delta_T = 0
+
+        else:
+            T_z = cosmo_bkg.T_xy(0, z)
+            delta_T = cosmo_bkg.T_xy(z_before, z)
+
+        T_ij_list.append(delta_T)
+        T_z_list.append(T_z)
+        z_before = z
+
+    return T_ij_list, T_z_list, reduced2physical_factor.tolist()
