@@ -3,7 +3,10 @@ import numpy as np
 import pytest
 
 from lenstronomy.LensModel.single_plane import SinglePlane as SinglePlane_ref
-from jaxtronomy.LensModel.single_plane_bulk import SinglePlaneBulk, SinglePlaneBulkStatic
+from jaxtronomy.LensModel.single_plane_bulk import (
+    SinglePlaneBulk,
+    SinglePlaneBulkStatic,
+)
 
 
 class TestSinglePlaneBulk(object):
@@ -80,7 +83,7 @@ class TestSinglePlaneBulkStatic(object):
     def test_ray_shooting(self):
         x = np.tile(np.linspace(-5, 5, 20), 20)
         y = np.repeat(np.linspace(-5, 5, 20), 20)
-    
+
         f_x, f_y = self.singleplane.ray_shooting(x, y, self.kwargs_lens)
         f_x_ref, f_y_ref = self.singleplane_ref.ray_shooting(x, y, self.kwargs_lens)
         npt.assert_allclose(f_x, f_x_ref, atol=1e-12, rtol=1e-12)

@@ -132,8 +132,8 @@ class SinglePlaneBulk(ProfileListBase):
 
 
 class SinglePlaneBulkStatic(ProfileListBase):
-    """This class should be used whenever the number of profile components exceeds
-    300, making the usual LensModel class unusable due to exploding compile times.
+    """This class should be used whenever the number of profile components exceeds 300,
+    making the usual LensModel class unusable due to exploding compile times.
 
     The API for this class follows lenstronomy's LensModel more closely than the
     SinglePlaneBulk class defined above. This class is intended to be used for image
@@ -152,12 +152,14 @@ class SinglePlaneBulkStatic(ProfileListBase):
         """
         if profile_kwargs_list is None:
             profile_kwargs_list = [{}] * len(lens_model_list)
-            
+
         (
             unique_lens_model_list,
             unique_profile_kwargs_list,
             index_list,
-        ) = bulk_util.create_unique_lens_model_list(lens_model_list, profile_kwargs_list)
+        ) = bulk_util.create_unique_lens_model_list(
+            lens_model_list, profile_kwargs_list
+        )
 
         self.index_list = jnp.array(index_list, dtype=int)
 
@@ -182,13 +184,13 @@ class SinglePlaneBulkStatic(ProfileListBase):
 
     # This function needs to be called outside of JIT (nested for-loops -> exploding compile times)
     def convert_lenstronomy_to_jax_kwargs(self, kwargs_lens):
-        """This is a helper functon used to convert kwargs_lens from the typical lenstronomy
-        convention to a format that is compatible with JAX scan.
+        """This is a helper functon used to convert kwargs_lens from the typical
+        lenstronomy convention to a format that is compatible with JAX scan.
 
         :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
             model in the same order of the lens_model_list (same as in lenstronomy)
-        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all parameters
-            for all lens models
+        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all
+            parameters for all lens models
         """
         all_kwargs = {}
         for kwarg in self.unique_kwargs:
@@ -212,7 +214,9 @@ class SinglePlaneBulkStatic(ProfileListBase):
         :return: source plane positions corresponding to (x, y) in the image plane
         """
         if k is not None:
-            raise ValueError("Selecting certain lens models with the `k` argment is not supported with bulk lensing")
+            raise ValueError(
+                "Selecting certain lens models with the `k` argment is not supported with bulk lensing"
+            )
         all_kwargs = self.convert_lenstronomy_to_jax_kwargs(kwargs_lens)
         return self._ray_shooting(x, y, all_kwargs)
 
