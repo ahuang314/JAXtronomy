@@ -90,8 +90,7 @@ class LensModel(object):
                 "functionality. See documentation for the single_plane_bulk.SinglePlaneBulkStatic() or multiplane_bulk.MultiPlaneBulkStatic classes."
             )
         if evaluate_bulk and len(lens_model_list) < 300:
-            warn("evaluate_bulk has been set to True but your lens model list has <300 models. Setting evaluate_bulk to False")
-            evaluate_bulk = False
+            warn("evaluate_bulk has been set to True but your lens model list has <300 models. It is recommended to set evaluate_bulk to False")
 
         if evaluate_bulk:
             self.ray_shooting = jit(self._ray_shooting, static_argnames="k")
