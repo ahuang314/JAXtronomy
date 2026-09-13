@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from lenstronomy.LensModel.MultiPlane.multi_plane import MultiPlane as MultiPlane_ref
-from jaxtronomy.LensModel.MultiPlane.multi_plane_bulk import MultiPlaneBulk
+from jaxtronomy.LensModel.MultiPlane.multi_plane_bulk import MultiPlaneBulk, MultiPlaneBulkStatic
 
 
 class TestMultiPlaneBulk(object):
@@ -118,3 +118,47 @@ class TestMultiPlaneBulk(object):
                 lens_redshift_list=self.redshift_list,
                 num_deflectors=3,
             )
+
+class TestMultiPlaneBulkStatic(object):
+    """Tests the MultiPlaneBulkStatic routines."""
+
+    def setup_method(self):
+        z_source = 3.5
+        lens_model_list = ["NFW", "NIE", "NFW", "NFW", "NFW"]
+        redshift_list = [0.5, 1.1, 1.1, 1.5, 1.3]
+
+        self.multiplane = MultiPlaneBulkStatic(
+            z_source=z_source,
+            lens_model_list=lens_model_list,
+            lens_redshift_list=redshift_list,
+            cosmology_model="LambdaCDM",
+        )
+
+        self.multiplane_ref = MultiPlane_ref(
+            z_source=z_source,
+            lens_model_list=lens_model_list,
+            lens_redshift_list=redshift_list,
+            cosmology_model="LambdaCDM",
+        )
+
+        kwargs_nfw1 = {"Rs": 1.3, "alpha_Rs": 2.18, "center_x": 0.1, "center_y": -2.1}
+        kwargs_nfw2 = {"Rs": 1.4, "alpha_Rs": 3.18, "center_x": -0.11, "center_y": 1.1}
+        kwargs_nfw3 = {"Rs": 1.5, "alpha_Rs": 1.11, "center_x": -0.13, "center_y": 1.2}
+        kwargs_nfw4 = {"Rs": 1.1, "alpha_Rs": 2.12, "center_x": 0.21, "center_y": -2.2}
+        kwargs_nie1 = {"theta_E": 1.5, "e1": 0.1, "e2": 0.2, "s_scale": 3.1}
+        self.kwargs_lens = [
+            kwargs_nfw1,
+            kwargs_nie1,
+            kwargs_nfw2,
+            kwargs_nfw3,
+            kwargs_nfw4,
+        ]
+
+    def test_ray_shooting(self):
+        x = np.tile(np.linspace(-5, 5, 20), 20)
+        y = np.repeat(np.linspace(-5, 5, 20), 20)
+
+        f_x, f_y = self.multiplane.ray_shooting(x, y, self.kwargs_lens)
+        f_x_ref, f_y_ref = self.multiplane_ref.ray_shooting(x, y, self.kwargs_lens)
+        npt.assert_allclose(f_x, f_x_ref, atol=1e-12, rtol=1e-12)
+        npt.assert_allclose(f_y, f_y_ref, atol=1e-12, rtol=1e-12)
