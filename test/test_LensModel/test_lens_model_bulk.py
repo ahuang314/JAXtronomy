@@ -4,6 +4,7 @@ import pytest
 
 from lenstronomy.LensModel.lens_model import LensModel as LensModel_ref
 from jaxtronomy.LensModel.lens_model_bulk import LensModelBulk
+from jaxtronomy.LensModel.lens_model import LensModel
 
 
 class TestLensModelBulk(object):
@@ -133,3 +134,72 @@ class TestLensModelBulk(object):
                 z_source=self.z_source,
                 lens_redshift_list=None,
             )
+
+
+class TestLensModelBulkStatic(object):
+    """Tests SinglePlaneBulkStatic and MultiPlaneBulkStatic by supplying
+    evaluate_bulk=True through the LensModel class."""
+
+    def _setup_method(self, multiplane):
+
+        lens_model_list = ["SIE"] * 3 + ["TNFW"] * 3
+
+        kwargs_sie = {"theta_E": 1.1, "e1": 0.1, "e2": -0.1}
+        kwargs_tnfw1 = {
+            "Rs": 1.3,
+            "alpha_Rs": 2.18,
+            "r_trunc": 1.5,
+            "center_x": 0.1,
+            "center_y": -2.1,
+        }
+        kwargs_tnfw2 = {
+            "Rs": 1.4,
+            "alpha_Rs": 3.18,
+            "r_trunc": 1.5,
+            "center_x": -0.11,
+            "center_y": 1.21,
+        }
+        self.kwargs_lens = [kwargs_sie] * 3 + [kwargs_tnfw1, kwargs_tnfw2, kwargs_tnfw1]
+
+        multiplane_kwargs = {
+            "multi_plane": multiplane,
+            "z_source": 2.5,
+            "lens_redshift_list": np.linspace(0.1, 2.3, 6),
+        }
+
+        self.lens_model_bulk = LensModel(
+            lens_model_list=lens_model_list, evaluate_bulk=True, **multiplane_kwargs
+        )
+        self.lens_model_ref = LensModel_ref(
+            lens_model_list=lens_model_list, **multiplane_kwargs
+        )
+
+    def test_singleplane(self):
+        self._setup_method(multiplane=False)
+
+        x = np.tile(np.linspace(-10, 10, 100), 100)
+        y = np.repeat(np.linspace(-10, 10, 100), 100)
+
+        f_x, f_y = self.lens_model_bulk.ray_shooting(x, y, self.kwargs_lens)
+        f_x_ref, f_y_ref = self.lens_model_ref.ray_shooting(x, y, self.kwargs_lens)
+        npt.assert_allclose(f_x, f_x_ref, atol=1e-12, rtol=1e-12)
+        npt.assert_allclose(f_y, f_y_ref, atol=1e-12, rtol=1e-12)
+
+        npt.assert_raises(
+            ValueError, self.lens_model_bulk.ray_shooting, x, y, self.kwargs_lens, k=1
+        )
+
+    def test_multiplane(self):
+        self._setup_method(multiplane=True)
+
+        x = np.tile(np.linspace(-10, 10, 100), 100)
+        y = np.repeat(np.linspace(-10, 10, 100), 100)
+
+        f_x, f_y = self.lens_model_bulk.ray_shooting(x, y, self.kwargs_lens)
+        f_x_ref, f_y_ref = self.lens_model_ref.ray_shooting(x, y, self.kwargs_lens)
+        npt.assert_allclose(f_x, f_x_ref, atol=1e-11, rtol=1e-11)
+        npt.assert_allclose(f_y, f_y_ref, atol=1e-11, rtol=1e-11)
+
+        npt.assert_raises(
+            ValueError, self.lens_model_bulk.ray_shooting, x, y, self.kwargs_lens, k=1
+        )

@@ -772,16 +772,3 @@ def lens_class(
             "%s is not a valid lens model. Supported are: %s."
             % (lens_type, _SUPPORTED_MODELS)
         )
-
-
-def _select_kwargs(profile, params):
-    """Returns a callable function that calculates deflection angles after down-
-    selecting the relevant kwargs for a given lens model profile.
-
-    This is only relevant if one uses the LensModelBulk class.
-    """
-
-    def derivative_wrapper(x, y, all_kwargs, params):
-        return profile.derivatives(x, y, *[all_kwargs[param] for param in params])
-
-    return partial(derivative_wrapper, params=params)

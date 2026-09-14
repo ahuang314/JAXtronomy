@@ -1,8 +1,10 @@
 __author__ = "sibirrer"
 from jaxtronomy.LensModel.single_plane import SinglePlane
 from jaxtronomy.LensModel.LineOfSight.single_plane_los import SinglePlaneLOS
+from jaxtronomy.LensModel.single_plane_bulk import SinglePlaneBulkStatic
 from jaxtronomy.LensModel.MultiPlane.decoupled_multi_plane import MultiPlaneDecoupled
 from jaxtronomy.LensModel.MultiPlane.multi_plane import MultiPlane
+from jaxtronomy.LensModel.MultiPlane.multi_plane_bulk import MultiPlaneBulkStatic
 
 from lenstronomy.Cosmo.lens_cosmo import LensCosmo
 from lenstronomy.Util import constants as const
@@ -41,6 +43,7 @@ class LensModel(object):
         distance_ratio_sampling=False,
         cosmology_sampling=False,
         cosmology_model="FlatLambdaCDM",
+        evaluate_bulk=False,
     ):
         """
 
@@ -72,16 +75,31 @@ class LensModel(object):
         :param cosmology_sampling: bool, if True, will use sampled cosmology
             to update T_ij value in multi-lens plane computation. Not supported in JAXtronomy.
         :param cosmology_model: str, name of the cosmology model to be used. Default is 'FlatLambdaCDM'.
+        :param evaluate_bulk: bool, if set to True, uses alternative lens model classes that are equipped
+            to handle lens model lists with length > 300. Only supported for the regular MultiPlane and SinglePlane classes.
+            See documentation for the single_plane_bulk.SinglePlaneBulkStatic() or multiplane_bulk.MultiPlaneBulkStatic classes.
         """
         if cosmology_sampling:
             raise ValueError("Cosmology sampling not supported in JAXtronomy")
         if distance_ratio_sampling:
             raise ValueError("Distance ratio sampling not supported in JAXtronomy")
-        if len(lens_model_list) > 300:
+        if len(lens_model_list) > 300 and evaluate_bulk is False:
             raise ValueError(
-                "Compile times grow exponentially with number of lenses. JAXtronomy's LensModel class may become unusable when number of lenses exceeds 300.\n"
-                "Instead, consider using the LensModelBulk class from jaxtronomy.LensModel.lens_model_bulk, which sidesteps this issue at the cost of having a different API."
+                "Compile times grow exponentially with the length of lens_model_list. JAXtronomy's LensModel class may become unusable when number of lenses exceeds 300.\n"
+                "You can initialize this class with evaluate_bulk=True to use an alternative lens model class that is equipped to handle such cases at the cost of limited\n"
+                "functionality. See documentation for the single_plane_bulk.SinglePlaneBulkStatic() or multiplane_bulk.MultiPlaneBulkStatic classes."
             )
+        if evaluate_bulk and len(lens_model_list) < 300:
+            warn(
+                "evaluate_bulk has been set to True but your lens model list has <300 models. It is recommended to set evaluate_bulk to False"
+            )
+
+        # Don't jit the ray shooting function at the top level if using the Bulk classes
+        if evaluate_bulk:
+            self.ray_shooting = self._ray_shooting
+        else:
+            self.ray_shooting = jit(self._ray_shooting, static_argnames="k")
+
         self.lens_model_list = lens_model_list
         self.z_lens = z_lens
 
@@ -153,19 +171,29 @@ class LensModel(object):
                 )
                 self.type = "MultiPlaneDecoupled"
             else:
-                self.lens_model = MultiPlane(
-                    z_source,
-                    lens_model_list,
-                    lens_redshift_list,
-                    cosmo=cosmo,
-                    observed_convention_index=observed_convention_index,
-                    z_source_convention=z_source_convention,
-                    cosmo_interp=cosmo_interp,
-                    z_interp_stop=z_interp_stop,
-                    num_z_interp=num_z_interp,
-                    distance_ratio_sampling=distance_ratio_sampling,
-                    profile_kwargs_list=profile_kwargs_list,
-                )
+                if evaluate_bulk:
+                    self.lens_model = MultiPlaneBulkStatic(
+                        z_source,
+                        lens_model_list,
+                        lens_redshift_list,
+                        cosmo,
+                        profile_kwargs_list,
+                        cosmology_model,
+                    )
+                else:
+                    self.lens_model = MultiPlane(
+                        z_source,
+                        lens_model_list,
+                        lens_redshift_list,
+                        cosmo=cosmo,
+                        observed_convention_index=observed_convention_index,
+                        z_source_convention=z_source_convention,
+                        cosmo_interp=cosmo_interp,
+                        z_interp_stop=z_interp_stop,
+                        num_z_interp=num_z_interp,
+                        distance_ratio_sampling=distance_ratio_sampling,
+                        profile_kwargs_list=profile_kwargs_list,
+                    )
                 self.type = "MultiPlane"
         else:
             if los_effects is True:
@@ -191,13 +219,19 @@ class LensModel(object):
                                 z_source_1=z_source,
                                 z_source_2=self._z_source_convention,
                             )
-                self.lens_model = SinglePlane(
-                    lens_model_list,
-                    lens_redshift_list=lens_redshift_list,
-                    z_source_convention=z_source_convention,
-                    profile_kwargs_list=profile_kwargs_list,
-                    alpha_scaling=alpha_scaling,
-                )
+                if evaluate_bulk:
+                    self.lens_model = SinglePlaneBulkStatic(
+                        lens_model_list,
+                        profile_kwargs_list=profile_kwargs_list,
+                    )
+                else:
+                    self.lens_model = SinglePlane(
+                        lens_model_list,
+                        lens_redshift_list=lens_redshift_list,
+                        z_source_convention=z_source_convention,
+                        profile_kwargs_list=profile_kwargs_list,
+                        alpha_scaling=alpha_scaling,
+                    )
                 self.type = "SinglePlane"
 
         self._ddt_scaling = 1
@@ -249,8 +283,8 @@ class LensModel(object):
         """
         self.lens_model.check_parameters(kwargs_list)
 
-    @partial(jit, static_argnums=(0, 4))
-    def ray_shooting(self, x, y, kwargs, k=None):
+    # This function is jitted at initialization only if evaluate_bulk=False
+    def _ray_shooting(self, x, y, kwargs, k=None):
         """Maps image to source position (inverse deflection)
 
         :param x: x-position (preferentially arcsec)

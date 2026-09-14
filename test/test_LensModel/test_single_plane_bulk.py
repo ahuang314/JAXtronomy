@@ -3,7 +3,10 @@ import numpy as np
 import pytest
 
 from lenstronomy.LensModel.single_plane import SinglePlane as SinglePlane_ref
-from jaxtronomy.LensModel.single_plane_bulk import SinglePlaneBulk
+from jaxtronomy.LensModel.single_plane_bulk import (
+    SinglePlaneBulk,
+    SinglePlaneBulkStatic,
+)
 
 
 class TestSinglePlaneBulk(object):
@@ -53,3 +56,35 @@ class TestSinglePlaneBulk(object):
                 kwargs_lens=self.kwargs_lens,
                 num_deflectors=1,
             )
+
+
+class TestSinglePlaneBulkStatic(object):
+    """Tests the SinglePlaneBulkStatic routines."""
+
+    def setup_method(self):
+        self.lens_model_list = ["NFW", "NFW"]
+        self.singleplane = SinglePlaneBulkStatic(
+            lens_model_list=self.lens_model_list,
+        )
+
+        self.singleplane_ref = SinglePlane_ref(
+            lens_model_list=self.lens_model_list,
+        )
+
+        kwargs_nfw1 = {"Rs": 1.3, "alpha_Rs": 2.18, "center_x": 0.1, "center_y": -2.1}
+        self.kwargs_lens = [
+            kwargs_nfw1,
+            kwargs_nfw1,
+        ]
+
+    def test_init(self):
+        npt.assert_array_equal(self.singleplane.index_list, [0, 0])
+
+    def test_ray_shooting(self):
+        x = np.tile(np.linspace(-5, 5, 20), 20)
+        y = np.repeat(np.linspace(-5, 5, 20), 20)
+
+        f_x, f_y = self.singleplane.ray_shooting(x, y, self.kwargs_lens)
+        f_x_ref, f_y_ref = self.singleplane_ref.ray_shooting(x, y, self.kwargs_lens)
+        npt.assert_allclose(f_x, f_x_ref, atol=1e-12, rtol=1e-12)
+        npt.assert_allclose(f_y, f_y_ref, atol=1e-12, rtol=1e-12)
