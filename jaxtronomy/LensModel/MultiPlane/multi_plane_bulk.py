@@ -44,7 +44,7 @@ class MultiPlaneBulk(ProfileListBase):
         )
 
         self._derivatives_list = [
-            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
+            bulk_util.select_kwargs(self.func_list[i], self.param_name_list[i])
             for i in range(len(self.func_list))
         ]
 
@@ -274,7 +274,7 @@ class MultiPlaneBulkStatic(ProfileListBase):
 
         # list of functions to use with jax.lax.switch
         self._derivatives_list = [
-            bulk_util._select_kwargs(self.func_list[i], self.param_name_list[i])
+            bulk_util.select_kwargs(self.func_list[i], self.param_name_list[i])
             for i in range(len(self.func_list))
         ]
 

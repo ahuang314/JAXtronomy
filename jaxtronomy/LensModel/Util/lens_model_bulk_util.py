@@ -55,7 +55,7 @@ def find_target_indices_in_list(list, target):
     return indices
 
 
-def _select_kwargs(profile, params):
+def select_kwargs(profile, params):
     """Returns a callable function that calculates deflection angles after down-
     selecting the relevant kwargs for a given lens model profile.
 
