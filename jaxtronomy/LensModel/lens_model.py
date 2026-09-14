@@ -92,10 +92,11 @@ class LensModel(object):
         if evaluate_bulk and len(lens_model_list) < 300:
             warn("evaluate_bulk has been set to True but your lens model list has <300 models. It is recommended to set evaluate_bulk to False")
 
+        # Don't jit the ray shooting function at the top level if using the Bulk classes
         if evaluate_bulk:
-            self.ray_shooting = jit(self._ray_shooting, static_argnames="k")
-        else:
             self.ray_shooting = self._ray_shooting
+        else:
+            self.ray_shooting = jit(self._ray_shooting, static_argnames="k")
 
         self.lens_model_list = lens_model_list
         self.z_lens = z_lens
