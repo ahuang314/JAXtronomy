@@ -8,8 +8,8 @@ def create_unique_lens_model_list(lens_model_list, profile_kwargs_list):
     corresponding position on the unique lens model list.
 
     :param lens_model_list: list of strings with lens model names
-    :param profile_kwargs_list: list of dicts, keyword arguments used to initialize profile classes
-        in the same order of the lens_model_list
+    :param profile_kwargs_list: list of dicts, keyword arguments used to initialize
+        profile classes in the same order of the lens_model_list
     :return: unique lens model list, unique profile kwargs list, index list
     """
     unique_lens_model_list = []
@@ -21,7 +21,9 @@ def create_unique_lens_model_list(lens_model_list, profile_kwargs_list):
         profile_kwargs = profile_kwargs_list[i]
 
         model_indices = find_target_indices_in_list(unique_lens_model_list, model)
-        profile_kwargs_indices = find_target_indices_in_list(unique_profile_kwargs_list, profile_kwargs)
+        profile_kwargs_indices = find_target_indices_in_list(
+            unique_profile_kwargs_list, profile_kwargs
+        )
 
         # Check if the model with corresponding profile kwargs already exists in the unique lists
         intersection = list(set(model_indices) & set(profile_kwargs_indices))
@@ -31,7 +33,7 @@ def create_unique_lens_model_list(lens_model_list, profile_kwargs_list):
             unique_lens_model_list.append(model)
             unique_profile_kwargs_list.append(profile_kwargs)
             index_list.append(len(unique_lens_model_list) - 1)
-        
+
         # already exists in the unique lists
         else:
             index_list.append(intersection[0])
@@ -58,9 +60,11 @@ def _select_kwargs(profile, params):
     selecting the relevant kwargs for a given lens model profile.
 
     :param profile: Instance of a lens model profile e.g. SIE()
-    :param params: list of parameter names corresponding to profile e.g. ["theta_E", "e1", "e2"]
+    :param params: list of parameter names corresponding to profile e.g. ["theta_E",
+        "e1", "e2"]
     :return: A callable function with function signature `derivative(x, y, all_kwargs)`
-        where all_kwargs is a dictionary of kwargs that can also include parameters from other profiles
+        where all_kwargs is a dictionary of kwargs that can also include parameters from
+        other profiles
     """
 
     def derivative_wrapper(x, y, all_kwargs, params):

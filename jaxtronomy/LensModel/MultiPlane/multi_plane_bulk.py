@@ -212,8 +212,8 @@ class MultiPlaneBulk(ProfileListBase):
 
 
 class MultiPlaneBulkStatic(ProfileListBase):
-    """This class should be used whenever the number of profile components exceeds
-    300, making the usual LensModel class unusable due to exploding compile times.
+    """This class should be used whenever the number of profile components exceeds 300,
+    making the usual LensModel class unusable due to exploding compile times.
 
     The API for this class follows lenstronomy's LensModel more closely than the
     MultiPlaneBulk class defined above. This class is intended to be used for image
@@ -244,15 +244,19 @@ class MultiPlaneBulkStatic(ProfileListBase):
             profile_kwargs_list = [{}] * len(lens_model_list)
 
         self.sorted_indices = np.argsort(lens_redshift_list)
-        lens_redshift_list, lens_model_list, profile_kwargs_list = _sort_lists_by_redshift(
-            lens_redshift_list, lens_model_list, profile_kwargs_list
+        lens_redshift_list, lens_model_list, profile_kwargs_list = (
+            _sort_lists_by_redshift(
+                lens_redshift_list, lens_model_list, profile_kwargs_list
+            )
         )
 
         (
             unique_lens_model_list,
             unique_profile_kwargs_list,
             index_list,
-        ) = bulk_util.create_unique_lens_model_list(lens_model_list, profile_kwargs_list)
+        ) = bulk_util.create_unique_lens_model_list(
+            lens_model_list, profile_kwargs_list
+        )
 
         # The source will be included as a NULL deflector for the final ray-tracing step
         ProfileListBase.__init__(
@@ -294,16 +298,15 @@ class MultiPlaneBulkStatic(ProfileListBase):
         reduced2physical_factor += [0]
         self.reduced2physical_factor = jnp.array(reduced2physical_factor, dtype=float)
 
-
     # This function needs to be called outside of JIT (nested for-loops -> exploding compile times)
     def convert_lenstronomy_to_jax_kwargs(self, kwargs_lens):
-        """This is a helper functon used to convert kwargs_lens from the typical lenstronomy
-        convention to a format that is compatible with JAX scan.
+        """This is a helper functon used to convert kwargs_lens from the typical
+        lenstronomy convention to a format that is compatible with JAX scan.
 
         :param kwargs_lens: list of dictionaries for all keyword arguments for each lens
             model in the same order of the lens_model_list (same as in lenstronomy)
-        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all parameters
-            for all lens models
+        :return: all_kwargs, dictionary of JAX or numpy arrays, containing all
+            parameters for all lens models
         """
 
         all_kwargs = {}
@@ -331,8 +334,10 @@ class MultiPlaneBulkStatic(ProfileListBase):
         :return: source plane positions corresponding to (x, y) in the image plane
         """
         if k is not None:
-            raise ValueError("Selecting certain lens models with the `k` argment is not supported with bulk lensing")
-        
+            raise ValueError(
+                "Selecting certain lens models with the `k` argment is not supported with bulk lensing"
+            )
+
         all_kwargs = self.convert_lenstronomy_to_jax_kwargs(kwargs_lens)
         return self._ray_shooting(x, y, all_kwargs)
 
@@ -378,7 +383,13 @@ class MultiPlaneBulkStatic(ProfileListBase):
         (alpha_x, alpha_y, x, y), _ = lax.scan(
             body_fun,
             init=(alpha_x, alpha_y, x, y),
-            xs=(all_kwargs, self.index_list, self.T_ij_list, self.T_z_list, self.reduced2physical_factor),
+            xs=(
+                all_kwargs,
+                self.index_list,
+                self.T_ij_list,
+                self.T_z_list,
+                self.reduced2physical_factor,
+            ),
         )
 
         beta_x = x / self.T_z_list[-1]
@@ -407,10 +418,11 @@ def _sort_lists_by_redshift(lens_redshift_list, *other_lists):
 
     return lens_redshift_list, *sorted_other_lists
 
+
 # This function is called outside of jit
 def _set_T_zs_and_T_ijs(lens_redshift_list, z_source, cosmo_bkg):
-    """Set the transverse comoving distances between the observer and the lens
-    planes and between the lens planes.
+    """Set the transverse comoving distances between the observer and the lens planes
+    and between the lens planes.
 
     :param lens_redshift_list: a SORTED np.array of redshifts
     :param z_source: float, redshift of source

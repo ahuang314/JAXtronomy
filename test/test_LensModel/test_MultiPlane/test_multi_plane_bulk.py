@@ -3,7 +3,10 @@ import numpy as np
 import pytest
 
 from lenstronomy.LensModel.MultiPlane.multi_plane import MultiPlane as MultiPlane_ref
-from jaxtronomy.LensModel.MultiPlane.multi_plane_bulk import MultiPlaneBulk, MultiPlaneBulkStatic
+from jaxtronomy.LensModel.MultiPlane.multi_plane_bulk import (
+    MultiPlaneBulk,
+    MultiPlaneBulkStatic,
+)
 
 
 class TestMultiPlaneBulk(object):
@@ -118,6 +121,7 @@ class TestMultiPlaneBulk(object):
                 lens_redshift_list=self.redshift_list,
                 num_deflectors=3,
             )
+
 
 class TestMultiPlaneBulkStatic(object):
     """Tests the MultiPlaneBulkStatic routines."""
